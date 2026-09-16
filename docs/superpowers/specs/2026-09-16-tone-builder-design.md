@@ -30,6 +30,40 @@ O `tone-builder` concentra o método num lugar e usa os aparelhos só para grava
 | compressor com limiar alto | −30/−20 dB tiravam 0,0 dB | compressor só conta com redução ≥ 3 dB medida |
 | ranking cru de pedais | Fuzz Factory 6,7 dB, sem fonte; Tube Screamer 8,2, com fonte | candidatos com e sem fonte separados; escolha entre os com fonte |
 
+## Como se usa
+
+O `tone-builder` é a porta de entrada. As skills de aparelho e o `tone-analyzer` são chamados por
+ele, não pelo usuário.
+
+> *"cria o timbre da música xpto na mk300"* → ele pede os dados que faltam → usa o
+> `tone-analyzer` → timbra a MK-300. Poderia timbrar todas as pedaleiras, se o usuário quiser.
+> (jpfaria, 16/09)
+
+### Pedido
+
+Frases do tipo *"timbre da <música> na <aparelho>"*, *"monta o som do solo de <música> no
+OpenRig e na Ampero"*, *"timbra <música> em todas as pedaleiras"*.
+
+### Coleta — pergunta só o que falta
+
+| dado | para quê | se faltar |
+|---|---|---|
+| música, artista, trecho (solo, base…) | pesquisa do rig da gravação | pergunta |
+| áudio do disco | nível dos harmônicos (alvo) | pergunta; sem disco não há medição → para |
+| pista de guitarra separada | localizar e nomear as notas | pergunta |
+| guitarra e posição do seletor | notas da biblioteca | lista as guitarras gravadas; faltando a posição, oferece gravar |
+| aparelho(s) de destino | onde gravar | pergunta: um, vários ou todos os instalados |
+
+### Um ou vários aparelhos
+
+- **Uma vez, compartilhado:** passo 0 (pesquisa), passo 1 (alvo), passo 2 (corda).
+- **Por aparelho:** passos 3 a 8 — cada catálogo é diferente, então a bateria, a escolha, a
+  margem, a gravação e a conferência rodam separadas para cada um.
+- Aparelho pedido cujo plugin não está instalado ou não responde: para **aquele** aparelho, diz o
+  motivo e segue nos outros.
+- Entrega: um relatório por aparelho e um resumo lado a lado (desvio no teste, blocos escolhidos,
+  o que ficou sem medir).
+
 ## Peças e responsabilidades
 
 ### `tone-builder` (repo novo, plugin do Claude Code)
