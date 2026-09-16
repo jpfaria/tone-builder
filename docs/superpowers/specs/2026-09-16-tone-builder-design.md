@@ -50,8 +50,12 @@ O método, sem conhecer protocolo nem catálogo de aparelho nenhum.
 Analisa **um** áudio de guitarra, sem efeito colateral (jpfaria, 16/09: *"o tone-analyzer deveria
 somente analisar um áudio de guitarra"*).
 
-- Ganha: detecção de pitch (autocorrelação pura); início de cada nota; nível de cada harmônico
-  H1..H16 de uma nota num instante dado, com o destaque sobre a vizinhança.
+- Entrega três coisas para um áudio (jpfaria, 16/09: *"gerar métrica, documentação e espectro"*):
+  - **métrica** — JSON;
+  - **documentação** — o relatório legível (hoje `analysis.pdf`);
+  - **espectro** — os espectrogramas (hoje `spec_*.png`).
+- Ganha nessas três saídas: detecção de pitch (autocorrelação pura); início de cada nota; nível de
+  cada harmônico H1..H16 de uma nota num instante dado, com o destaque sobre a vizinhança.
 - `compare` e `eq-match` comparam **dois** áudios, então não pertencem mais a ele: ficam marcados
   como **obsoletos** (e inválidos para nota isolada) na documentação e na saída.
 
