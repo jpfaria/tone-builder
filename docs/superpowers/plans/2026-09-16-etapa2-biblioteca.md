@@ -892,3 +892,26 @@ git push
   `list_guitars`, `list_positions`, `list_notes`, `read_yaml`, `write_yaml`, `judge_take`,
   `record`, `cut_notes`, `save_string`, `SR`, `PREROLL_S`.
 - Fora desta etapa: skill do tone-builder e manifesto de plugin (etapa 3, com o método).
+
+---
+
+## Resultado da execução (16/09)
+
+Todas as 6 tarefas concluídas; CI verde em Python 3.11 e 3.12 com a biblioteca real reconferida
+(LFS baixado, teste não pulado).
+
+**Desvios, todos achados rodando em dado real e não em sintético:**
+
+1. **Cortador de notas nas 6 tomadas brutas reais:** achou 90/96 notas. Diagnóstico medido: um ataque
+   não detectado; um A#2 oscilando entre MIDI 46 e 47 descartado pela regra de sustentação; um F3
+   lido como MIDI 89 (= `fmax`) por pico na borda da busca. As duas últimas eram defeito de análise
+   e foram corrigidas no `tone-analyzer` (pico na borda = confiança 0; sustentação por distância à
+   mediana ≤ ½ semitom) → 91/96, sem regressão nas notas cortadas (93/96). A hipótese inicial
+   (restringir a faixa de pitch à corda) foi **testada e refutada**: recuperava só 1 nota.
+2. **Pin do `tone-analyzer` por commit não atualizava:** com a versão igual (0.2.0), o pip manteve o
+   código antigo em silêncio. Correção: `tone-analyzer` 0.2.1, tag `v0.2.1` (padrão de tags do repo),
+   e o `tone-builder` fixa pela tag.
+3. **Id da guitarra:** `prs-silver-sky-se` (jpfaria), não `silversky-se`.
+
+**Biblioteca importada:** 96 notas, `library check` → 93 aceitas, 3 rejeitadas por pitch
+(c1-66-F#4, c2-73-C#5, c3-66-F#4), mantidas com `accepted: false` até regravar.
