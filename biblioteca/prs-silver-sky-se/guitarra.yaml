@@ -1,0 +1,12 @@
+# Only what jpfaria stated or music-setup documents. A missing field = not documented.
+name: PRS SE Silver Sky
+pickups: stock                     # music-setup/docs/guitarras.md: "originais"
+tuning: standard                   # 93/96 notes measure the pitch standard tuning predicts
+selector_positions:                # jpfaria, 2026-09-15
+  pos1: bridge
+  pos2: bridge + middle
+  pos3: middle
+  pos4: middle + neck
+  pos5: neck
+recorded:
+  pos5: "2026-09-15"
