@@ -914,3 +914,36 @@ git push
 - Nomes conferidos entre tarefas: `pitch_autocorr`, `hz_to_midi`, `midi_name`, `note_onsets`,
   `detect_notes`, `harmonic_levels`, `render_spec_notes_png`, chaves `level_db`, `neighbour_db`,
   `prominence_db`, `relative_db`.
+
+---
+
+## Adendo durante a execução (16/09)
+
+**Task 2 — desvio do plano:** a 22 050 Hz o E5 saiu uma oitava abaixo (período de 33,46 amostras
+entre dois lags inteiros). Corrigido reamostrando o quadro para 48 kHz, a taxa em que o método foi
+validado — sem heurística de oitava. Teste inalterado.
+
+**Task 6 — hashes fixados:** atualizados com prova: duas execuções idênticas nos 5 arquivos, e o
+fingerprint sem `notes` e com schema 3 dá exatamente os hashes antigos.
+
+**Regra de fronteira nova do jpfaria** (*"tudo que gera dados, gera informação de um áudio, fica no
+tone-analyzer"*) acrescenta a Task 8.
+
+### Task 8: métricas de uma tomada e saturação por canal
+
+**Files:**
+- Create: `tone_analyzer/take.py`
+- Modify: `tone_analyzer/cli.py`, `tone_analyzer/analyze.py` (`global.saturated_samples`)
+- Test: `tests/test_take.py`, `tests/test_determinism.py` (hashes, com a mesma prova da Task 6)
+
+**Interfaces:**
+- Produces: `saturated_samples(signal: np.ndarray, threshold: float = 0.999) -> int` — conta em **todos os canais**, sem mixdown;
+  `take_metrics(signal: np.ndarray, sr: int, dur_s: float = 0.6) -> dict` →
+  `{"duration_s", "onset_s", "midi", "name", "f0_hz", "pitch_confidence", "saturated_samples", "peak_db", "noise_floor_db", "signal_db", "snr_db"}`
+  (`midi`/`name`/`f0_hz` `None` sem pitch; `noise_floor_db`/`snr_db` `None` com menos de 10 ms antes do ataque);
+  CLI `tone-analyzer take <in.wav> [--out-dir DIR]` → `take.json`.
+- **Não** decide aprovado/reprovado: isso é do tone-builder.
+
+Critérios dos testes: estéreo saturando só no canal R conta > 0; nota sintética com 50 ms de ruído
+baixo antes do ataque dá `midi` certo, `saturated_samples == 0` e `snr_db > 30`; nota clipada conta
+> 0; arquivo só de silêncio dá `midi is None`.
