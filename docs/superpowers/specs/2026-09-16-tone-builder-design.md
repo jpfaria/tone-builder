@@ -122,7 +122,7 @@ O plugin não depende do `music-setup`.
 
 ```
 biblioteca/
-  <guitarra>/                       id igual ao do music-setup (ex.: silversky-se)
+  <guitarra>/                       id igual ao do music-setup (ex.: prs-silver-sky-se)
     guitarra.yaml                   captadores, afinação, cordas, posições do seletor, data
     <posicao>/
       c<corda>-<midi>-<nota>.wav    48 kHz, uma nota, começando no ataque
