@@ -14,7 +14,7 @@ dependencies = [
   "soundfile==0.12.1",
   "sounddevice==0.5.6",
   "PyYAML>=6.0",
-  "tone-analyzer @ git+https://github.com/jpfaria/tone-analyzer@6d735e0",
+  "tone-analyzer @ git+https://github.com/jpfaria/tone-analyzer@v0.2.1",
 ]
 
 [project.optional-dependencies]
