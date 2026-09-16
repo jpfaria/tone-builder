@@ -79,6 +79,20 @@ O método, sem conhecer protocolo nem catálogo de aparelho nenhum.
 - **Bateria de blocos** completa, **seleção por retenção**, **margem de pico**.
 - **Conferência pós-gravação** e **relatório de entrega**.
 
+### Regra de fronteira (jpfaria, 16/09)
+
+> *"tudo que gera dados, gera informação de um áudio, fica no tone-analyzer"* —
+> *"o comando de comparar tem que ficar no tone-builder"*.
+
+| é do `tone-analyzer` (informação de UM áudio) | é do `tone-builder` (compara ou decide) |
+|---|---|
+| pitch, ataques, notas detectadas | montar o alvo (nota localizada numa pista, nível lido no disco) |
+| nível e destaque de cada harmônico | desvio render × alvo |
+| pico, amostras saturadas, nível RMS | margem: pico com o DI em +12/+18 dB (decide aprovado/reprovado) |
+| teste de uma nota gravada: pitch, duração, saturação, ruído de fundo | aceitar ou rejeitar a nota na biblioteca |
+| espectrogramas, relatório PDF, JSON de métricas | redução de ganho do compressor (compara com e sem) |
+| | retenção, escolha, relatório de entrega |
+
 ### `tone-analyzer` (existe; fica só com análise de UM áudio)
 
 Analisa **um** áudio de guitarra, sem efeito colateral (jpfaria, 16/09: *"o tone-analyzer deveria
