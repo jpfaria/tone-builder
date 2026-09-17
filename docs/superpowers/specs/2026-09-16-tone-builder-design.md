@@ -24,6 +24,7 @@ O `tone-builder` concentra o método num lugar e usa os aparelhos só para grava
 | a guitarra nunca domina a mix | mediana −5,4 dB | pista separada só localiza a nota |
 | banda de 1/3 de oitava numa nota isolada | vales 74–84 dB abaixo dos picos | comparação nos harmônicos |
 | alvo nos harmônicos, contra verdade conhecida | erro 1,84 dB a −6 dB de dominância, zero falso positivo | método aceito; vira teste automático |
+| **correção 16/09 (etapa 3)**: o 1,84 dB era de uma guitarra só; com 96 notas e 4 guitarras o destaque de 10 dB passa em 5 de 16 casos | 13 dB: erro ≤ 1,87 dB nos 16 | destaque mínimo 13 dB; falso positivo = guitarra sozinha sem pico (< 6 dB) |
 | detector de pitch | autocorrelação pura 92/96 e 21/21; "correções de oitava" 84–93/96 e 17/21 | só autocorrelação pura |
 | peso das variáveis | corda até 10,7 dB · pedal 1,1 · gabinete 0,7 · amp 0,3 | a biblioteca de notas é a peça central |
 | EQ ajustado sem retenção | 5 iterações: ajuste melhora, teste piora (8,1 → 8,3 … 13,5) | nenhum EQ ou escolha sem retenção |
@@ -146,7 +147,7 @@ biblioteca/
 ```
 0. pesquisa     rig da GRAVAÇÃO, página aberta, disco × turnê separados
 1. alvo         disco + pista separada do usuário → notas inteiras (0,6 s do ataque),
-                nível de cada harmônico lido no disco, aceito só com ≥ 10 dB sobre a vizinhança
+                nível de cada harmônico lido no disco, aceito só com ≥ 13 dB sobre a vizinhança (era 10; ver correção na tabela de números)
 2. corda        para cada nota do alvo, mede todas as cordas disponíveis na biblioteca
 3. bateria      TODAS as classes, cada uma medida:
                 drive único · drives empilhados (pares, 2 ordens) · boost ·

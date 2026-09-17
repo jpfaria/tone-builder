@@ -25,14 +25,14 @@ fronteira", "Fluxo de um timbre", "Testes", "Erros", "Ordem de implementação" 
 - Medir UM áudio é do `tone-analyzer`; nenhuma métrica de áudio é reimplementada aqui.
 - Alvo = **disco** lido em k·f0; a pista separada só localiza nota e tempo.
 - Janela da nota: **0,6 s** a partir do ataque, nos dois lados.
-- Harmônico aceito no alvo: destaque **≥ 10 dB** sobre a vizinhança. Nota entra com **≥ 5** aceitos.
+- Harmônico aceito no alvo: destaque **≥ 13 dB** sobre a vizinhança (era 10; ver "Resultado da Task 5"). Nota entra com **≥ 5** aceitos.
 - Nível removido pela média dos harmônicos aceitos; desvio da nota = RMS do resto.
 - Nenhuma escolha sem **retenção** (ajusta numa metade das notas, decide na outra).
 - Compressor só conta como testado com redução de ganho medida **≥ 3 dB**.
 - Candidatos **com fonte** e **sem fonte** ranqueados separados; só com fonte pode ser escolhido.
 - Margem: **zero** amostras saturadas com o DI em **+12** e **+18 dB**.
 - Relatório: "pronto" só se toda classe da bateria tem número ou motivo e a margem passou; senão "parcial".
-- Validador: erro ≤ **2 dB** a **−6 dB** de dominância, **zero** falso positivo.
+- Validador (fundo sintético): erro ≤ **2 dB** a **−6 dB** de dominância, **zero** falso positivo; falso positivo = aceito na mix onde a guitarra sozinha tem destaque **< 6 dB**.
 - Render que sai em silêncio (pico < 1e-4) reprova o candidato.
 - Testes não tocam hardware nem escrevem fora de `tmp_path`. Música de artista nunca entra no repo.
 - Código, chaves e mensagens em inglês; "pronto"/"parcial" são os dois valores de status da spec.
@@ -480,5 +480,20 @@ fundo sintético (ruído rosa + baixo) e real (`no_guitar` de *Gravity* a partir
 - "Falso positivo" hoje = aceito na mix e com destaque abaixo do limiar na guitarra sozinha. Com
   o limiar mais alto, um harmônico real da guitarra que fica logo abaixo dele também conta como
   falso positivo; a definição mistura "não é a guitarra" com "é a guitarra, na borda".
-- Decisão pendente com o jpfaria (limiar e critério de falso positivo). O `validator.py` não foi
-  commitado com o teste vermelho.
+
+### Decisão (jpfaria, 16/09)
+
+Limiar **13 dB** (o menor com erro ≤ 2 dB nas 16 combinações) e falso positivo redefinido: pico
+aceito na mix onde a guitarra sozinha tem destaque **< 6 dB** (sem pico dela). Remedido com as 96
+notas (`2026-09-16-etapa3-validador-13db.json`):
+
+| fundo | dominância | erro (4 guitarras) | falsos positivos | notas |
+|---|---|---|---|---|
+| sintético | −6 dB | 0,80–1,04 dB | 0 | 63–77 |
+| sintético | 0 dB | 0,70–0,77 dB | 0 | 75–86 |
+| real | −6 dB | 1,18–1,87 dB | 0–2 | 91–95 |
+| real | 0 dB | 0,76–1,34 dB | 0–2 | 95–96 |
+
+Com o fundo **real** sobram 1–2 picos de outro instrumento em 6 das 8 combinações: são falsos
+positivos de verdade (a guitarra sozinha não tem pico ali). O teste automático usa o fundo
+sintético, onde é zero; com música real, o erro de nível medido já inclui esses picos.

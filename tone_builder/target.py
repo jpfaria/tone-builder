@@ -13,7 +13,10 @@ from tone_analyzer.notes import detect_notes, harmonic_levels, midi_name
 
 from tone_builder.audio import SR
 
-PROMINENCE_DB = 10.0   # with 10 dB the background adds <= 0.4 dB to the peak
+# Known-truth sweep, 16/09 (96 notes, 4 guitars, synthetic and real background,
+# dominance -6 and 0 dB): 10 dB kept the level error <= 2 dB in 5 of 16 cases,
+# 13 dB is the lowest that keeps it in all 16 (worst 1.87 dB). Decided by jpfaria.
+PROMINENCE_DB = 13.0
 MIN_HARMONICS = 5
 DUR_S = 0.6            # the shortest library note is 0.67 s
 
