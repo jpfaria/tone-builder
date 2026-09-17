@@ -1,0 +1,14 @@
+{
+  "name": "tone-builder",
+  "owner": {
+    "name": "João Paulo",
+    "url": "https://github.com/jpfaria/tone-builder"
+  },
+  "plugins": [
+    {
+      "name": "tone-builder",
+      "source": "./",
+      "description": "Recreates the tone of a recording by measurement and builds it on OpenRig, Ampero II and MK-300."
+    }
+  ]
+}
