@@ -14,7 +14,7 @@
 - Gravity de ponta a ponta (19 min): TS drive 8 tone 5 → Dumble ODS John Mayer hiz, EQ plano
   (retenção reprovou o EQ: melhora 0,70, ruído 1,54), **7,76 dB**, zero saturada a +18 dB, status
   pronto. Números por classe em `music-setup/docs/metodo-timbre.md` (rodada 9).
-- **Pendente:** gravar no OpenRig e rodar `verify` — o app estava fechado (sem MCP).
+- **Pendente:** gravar no OpenRig e rodar `verify` — o app está aberto (`adapter-gui --mcp`, `.solvers/issue-947`), mas `127.0.0.1:4123` recusa conexão e o processo não escuta porta TCP (conferido 17/09).
 
 ## Etapas 5 e 6 — MK-300 e Ampero II
 
