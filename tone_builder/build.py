@@ -90,14 +90,11 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     classes: dict[str, dict] = {}
 
     def step(klass: str, slot: str, opts: list[Option], extra_units: set[str] = frozenset()) -> dict:
-        r = dict(research)
-        if extra_units:
-            r["blocks"] = list(research.get("blocks") or []) + [
-                {"class": klass, "unit": u, "era": "record", "sources": ["https://derived"]} for u in extra_units]
         by_name = {o.name: o for o in opts}
         cands = [Candidate(o.name, klass, o.unit, device.renderer(assemble({**state, slot: o.blocks})),
                            o.gain_reduction_db) for o in opts]
-        res, base = run_battery(device.renderer(assemble(state)), cands, assignments, r, workdir / klass)
+        res, base = run_battery(device.renderer(assemble(state)), cands, assignments, research, workdir / klass,
+                                derived_units={klass: set(extra_units)} if extra_units else None)
         entry = res[klass]
         entry["baseline_deviation_db"] = base["deviation"]
         entry.pop("per_note_all", None)
@@ -171,6 +168,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     margin = measure_margin(device.renderer(final_blocks), [a["di"] for a in assignments], workdir / "margin")
     rep = report_mod.build(classes, margin, final["deviation"])
     rep["absent_from_catalog"] = absent
+    rep["final_deviation_db"] = final["deviation"]
     rep["notes"] = [{"name": a["note"]["name"], "start_s": a["note"]["start_s"], "di": str(a["di"]),
                      "deviation_db": d} for a, d in zip(assignments, final["per_note"])]
     return {"report": rep, "preset": device.preset(final_blocks, name), "blocks": final_blocks, "target": target}

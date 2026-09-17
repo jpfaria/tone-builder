@@ -30,17 +30,23 @@ class Candidate:
 
 
 def run_battery(baseline: Renderer, candidates: list[Candidate], assignments: list[dict],
-                research: dict, workdir: Path) -> tuple[dict[str, dict], dict]:
+                research: dict, workdir: Path,
+                derived_units: dict[str, set[str]] | None = None) -> tuple[dict[str, dict], dict]:
     """Returns (result per class, baseline measurement)."""
     base = measure(baseline, assignments, workdir / "baseline")
     fit, test = retention.split(len(assignments))
     sourced = sourced_units(research)
+    # Units built from sourced ones (a pair of sourced drives) or by the method itself
+    # (the fitted EQ): choosable under retention, flagged as derived, never given a URL.
+    derived = derived_units or {}
+    for k, units in derived.items():
+        sourced.setdefault(k, set()).update(units)
     not_found = {n.get("class"): n for n in research.get("not_found") or []}
     out: dict[str, dict] = {}
     for klass in CLASSES:
         pool = [c for c in candidates if c.klass == klass]
         entry = {"status": "no_candidate", "sourced": None, "unsourced_best": None,
-                 "reason": None, "errors": [], "measured": {}}
+                 "reason": None, "errors": [], "measured": {}, "derived_from_sources": bool(derived.get(klass))}
         if klass in not_found:
             entry["reason"] = f"research found no source: {not_found[klass].get('searched')}"
         if klass == "compressor" and pool:

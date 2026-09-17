@@ -121,6 +121,34 @@ def _build(a) -> int:
     return 0
 
 
+def _verify(a) -> int:
+    import json
+    from tone_builder.verify import verify
+    out = Path(a.build_dir)
+    report = json.loads((out / "report.json").read_text())
+    target = json.loads((out / "target.json").read_text())
+    if a.device == "openrig":
+        from tone_builder.devices.openrig import OpenRigRenderer
+        saved = yaml.safe_load(Path(a.saved).read_text())
+        renderer = OpenRigRenderer(saved["blocks"], out / "verify")
+    elif a.device in ("ampero2", "mvave"):
+        from tone_builder.devices.pedal import Runner
+        from tone_builder.render import RenderError
+        run = Runner(a.device)
+
+        def renderer(src, dst):
+            for cmd in (["load", a.saved], ["reamp", str(src), str(dst), "--mono"]):
+                code, text = run(cmd)
+                if code != 0:
+                    raise RenderError(f"{a.device} {' '.join(cmd)}: {text.strip()[:300]}")
+    else:
+        print(f"verify: unknown device {a.device!r}", file=sys.stderr)
+        return 2
+    r = verify(report, target, renderer, out / "verify")
+    print(json.dumps(r, indent=1))
+    return 0 if r["match"] else 1
+
+
 def _validate(a) -> int:
     notes = library.list_notes(_root(a), a.guitar, a.position)
     print("dominance  notes  harmonics/note  error dB  false positives")
@@ -177,7 +205,13 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--plugins-root")
     bp.add_argument("--reamp-patch")
     bp.add_argument("--root")
+    wp = sub.add_parser("verify", help="render what was saved on the device and compare with the build report")
+    wp.add_argument("--device", required=True)
+    wp.add_argument("--build-dir", required=True)
+    wp.add_argument("--saved", required=True, help="openrig: saved preset YAML; ampero2: patch (A30-3); mvave: preset number")
     a = p.parse_args(argv)
+    if a.group == "verify":
+        return _verify(a)
     if a.group == "build":
         return _build(a)
     if a.group == "target":
