@@ -19,3 +19,21 @@ def note(midi, seconds=1.5, start_s=0.5, slope_db=-6.0, gains_db=None, n_harm=8,
     a = int(start_s * SR)
     out[a:a + n] = x
     return out
+
+
+def write(path, x):
+    import soundfile as sf
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sf.write(str(path), x, SR, subtype="FLOAT")
+    return path
+
+
+def copy_render(src, dst):
+    import shutil
+    shutil.copyfile(src, dst)
+
+
+def silent_render(src, dst):
+    import soundfile as sf
+    x, sr = sf.read(str(src))
+    sf.write(str(dst), np.zeros_like(x), sr, subtype="FLOAT")
