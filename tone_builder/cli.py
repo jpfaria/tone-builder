@@ -78,15 +78,30 @@ def _target(a) -> int:
 def _build(a) -> int:
     import json
     from tone_builder.build import Unresolved, build_tone
+    from tone_builder.render import RenderError
     from tone_builder.devices.openrig import OpenRigDevice
     from tone_builder.report import to_markdown
     from tone_builder.research import load_research
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    if a.device != "openrig":
-        print(f"build: device {a.device!r} has no renderer in tone-builder yet", file=sys.stderr)
+    if a.device == "openrig":
+        if not a.plugins_root:
+            print("build: --plugins-root is required for openrig", file=sys.stderr)
+            return 2
+        device = OpenRigDevice(Path(a.plugins_root), out / "work")
+    elif a.device == "ampero2":
+        from tone_builder.devices.pedal import AmperoDevice
+        if not a.reamp_patch:
+            print("build: --reamp-patch is required for ampero2 (a patch whose input SOURCE = USB OUT 3/4, "
+                  "set on the touchscreen)", file=sys.stderr)
+            return 2
+        device = AmperoDevice(out / "work", a.reamp_patch)
+    elif a.device == "mvave":
+        from tone_builder.devices.pedal import MvaveDevice
+        device = MvaveDevice(out / "work")
+    else:
+        print(f"build: unknown device {a.device!r} (openrig, ampero2, mvave)", file=sys.stderr)
         return 2
-    device = OpenRigDevice(Path(a.plugins_root), out / "work")
     try:
         res = build_tone(load_mono(Path(a.disc)), load_mono(Path(a.lead)),
                          library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
@@ -94,7 +109,7 @@ def _build(a) -> int:
     except Unresolved as e:
         print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
         return 3
-    except ValueError as e:
+    except (ValueError, RenderError) as e:
         print(f"build: {e}", file=sys.stderr)
         return 4
     (out / "preset.yaml").write_text(yaml.safe_dump(res["preset"], sort_keys=False, allow_unicode=True))
@@ -159,7 +174,8 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--position", required=True)
     bp.add_argument("--name", required=True)
     bp.add_argument("--out", required=True)
-    bp.add_argument("--plugins-root", required=True)
+    bp.add_argument("--plugins-root")
+    bp.add_argument("--reamp-patch")
     bp.add_argument("--root")
     a = p.parse_args(argv)
     if a.group == "build":

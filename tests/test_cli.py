@@ -66,3 +66,10 @@ def test_validate_passes_on_the_shipped_library(capsys):
     assert cli.main(["validate", "--dominance", "-6", "0"]) == 0
     out = capsys.readouterr().out
     assert "-6" in out and "false positives" in out
+
+
+def test_build_on_ampero_needs_the_reamp_patch(tmp_path, capsys):
+    rc = cli.main(["build", "--device", "ampero2", "--disc", "d.wav", "--lead", "l.wav", "--research", "r.yaml",
+                   "--guitar", "g", "--position", "p", "--name", "n", "--out", str(tmp_path)])
+    assert rc == 2
+    assert "USB OUT 3/4" in capsys.readouterr().err
