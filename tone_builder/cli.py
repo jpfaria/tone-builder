@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import soundfile as sf
+import yaml
 
 from tone_builder import library, recorder
 from tone_builder.audio import load_mono
@@ -74,6 +75,37 @@ def _target(a) -> int:
     return 0 if t else 1
 
 
+def _build(a) -> int:
+    import json
+    from tone_builder.build import Unresolved, build_tone
+    from tone_builder.devices.openrig import OpenRigDevice
+    from tone_builder.report import to_markdown
+    from tone_builder.research import load_research
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    if a.device != "openrig":
+        print(f"build: device {a.device!r} has no renderer in tone-builder yet", file=sys.stderr)
+        return 2
+    device = OpenRigDevice(Path(a.plugins_root), out / "work")
+    try:
+        res = build_tone(load_mono(Path(a.disc)), load_mono(Path(a.lead)),
+                         library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
+                         device, out / "work", a.name)
+    except Unresolved as e:
+        print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
+        return 3
+    except ValueError as e:
+        print(f"build: {e}", file=sys.stderr)
+        return 4
+    (out / "preset.yaml").write_text(yaml.safe_dump(res["preset"], sort_keys=False, allow_unicode=True))
+    (out / "report.json").write_text(json.dumps(res["report"], indent=1, default=str))
+    (out / "report.md").write_text(to_markdown(res["report"]))
+    (out / "target.json").write_text(json.dumps(res["target"], indent=1))
+    print(to_markdown(res["report"]))
+    print(f"-> {out}")
+    return 0
+
+
 def _validate(a) -> int:
     notes = library.list_notes(_root(a), a.guitar, a.position)
     print("dominance  notes  harmonics/note  error dB  false positives")
@@ -118,7 +150,20 @@ def main(argv: list[str] | None = None) -> int:
     vp.add_argument("--position", default="pos5")
     vp.add_argument("--dominance", type=float, nargs="+", default=[-6.0, -3.0, 0.0, 6.0])
     vp.add_argument("--root")
+    bp = sub.add_parser("build", help="build one tone on one device")
+    bp.add_argument("--device", required=True)
+    bp.add_argument("--disc", required=True)
+    bp.add_argument("--lead", required=True)
+    bp.add_argument("--research", required=True)
+    bp.add_argument("--guitar", required=True)
+    bp.add_argument("--position", required=True)
+    bp.add_argument("--name", required=True)
+    bp.add_argument("--out", required=True)
+    bp.add_argument("--plugins-root", required=True)
+    bp.add_argument("--root")
     a = p.parse_args(argv)
+    if a.group == "build":
+        return _build(a)
     if a.group == "target":
         return _target(a)
     if a.group == "validate":

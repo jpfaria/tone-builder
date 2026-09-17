@@ -1,0 +1,51 @@
+# Step 0 for "Gravity" (John Mayer, Continuum, recorded Jan 2005 - Jul 2006).
+# Every quote was read on the opened page on 16/09/2026; search summaries were not used.
+song: Gravity
+artist: John Mayer
+part: solo
+blocks:
+  - class: amp
+    unit: Dumble ODS John Mayer
+    era: record
+    sources:
+      - https://www.tapatalk.com/groups/johnmayer/continuum-era-studio-pics-t15512-s80.html
+    quote: "studio photos from Jan 2006 show a Dumble Overdrive Reverb #59 with a Dumble cabinet (read 16/09; the page now answers 403)"
+  - class: amp
+    unit: Two-Rock Custom Reverb Signature
+    era: record
+    absent_from_catalog: true   # the catalog has the Two Rock Studio Signature, a different amp
+    sources:
+      - https://www.boostguitarpedals.co.uk/blogs/gear-of-the-gods/john-mayers-gear-through-the-years
+    quote: "During the Continuum and Battle Studies era, John was a Two Rock artist."
+  - class: cab
+    unit: Dumble 4x12
+    era: record
+    absent_from_catalog: true
+    sources:
+      - https://www.tapatalk.com/groups/johnmayer/continuum-era-studio-pics-t15512-s80.html
+    quote: "Dumble head with a Dumble cabinet in the Jan 2006 studio photos"
+  - class: single_drive
+    unit: Marshall BluesBreaker
+    era: record
+    sources:
+      - https://www.boostguitarpedals.co.uk/blogs/gear-of-the-gods/john-mayers-gear-through-the-years
+    quote: "The Bluesbreaker was used a lot during the Continuum and Battle Studies era to achieve an edge of breakup tone."
+  - class: single_drive
+    unit: Ibanez Tube Screamer
+    era: record
+    sources:
+      - https://www.boostguitarpedals.co.uk/blogs/gear-of-the-gods/john-mayers-gear-through-the-years
+    quote: "Mayer often always has a Tubescreamer variant on hand regardless of the rig in question."
+not_found:
+  - class: boost
+    searched:
+      - https://www.boostguitarpedals.co.uk/blogs/gear-of-the-gods/john-mayers-gear-through-the-years   # Klon and Katana named, neither tied to the record
+      - https://www.guitarworld.com/news/john-mayer-klon-centaur-settings   # 2022 settings, not the record
+  - class: compressor
+    searched:
+      - https://equipboard.com/albums/john-mayer-continuum   # compressors listed are on vocals only
+  - class: time_fx
+    searched:
+      - https://equipboard.com/albums/john-mayer-continuum
+      - https://www.libertyparkmusic.com/john-mayer-effect-pedals/   # nothing tied to Continuum or Gravity
+      - https://www.premierguitar.com/articles/27381-what-the-ell-lessons-i-learned-from-recreating-john-mayers-continuum   # a recreation, not the record

@@ -38,4 +38,5 @@ def measure(render: Renderer, assignments: list[dict], workdir: Path) -> dict:
         x = render_note(render, a["di"], workdir, f"{i:02d}-{a['note']['midi']}")
         per_note.append(note_deviation(a["note"], x))
     return {"deviation": mean_deviation(per_note),
-            "per_note": [None if p is None else p["rms_db"] for p in per_note]}
+            "per_note": [None if p is None else p["rms_db"] for p in per_note],
+            "points": [[] if p is None else p["points"] for p in per_note]}

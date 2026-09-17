@@ -61,6 +61,7 @@ def run_battery(baseline: Renderer, candidates: list[Candidate], assignments: li
         if results:
             entry["status"] = "measured"
             entry["measured"] = {k: v["deviation"] for k, v in results.items()}
+            entry["per_note"] = {k: v["per_note"] for k, v in results.items()}
             with_src = {c.name: results[c.name]["per_note"] for c in pool
                         if c.name in results and c.unit in sourced.get(klass, set())}
             if with_src:

@@ -21,7 +21,7 @@ def measure_margin(render: Renderer, dis: list[Path], workdir: Path) -> dict:
         peak, sat = -120.0, 0
         for i, di in enumerate(dis):
             x, sr = sf.read(str(di), always_2d=False)
-            src = workdir / f"di{i:02d}+{boost}.wav"
+            src = workdir / f"{i:02d}-{Path(di).stem}+{boost}.wav"
             sf.write(str(src), np.clip(x * 10 ** (boost / 20), -1, 1), sr, subtype="FLOAT")
             wet = workdir / f"wet{i:02d}+{boost}.wav"
             render(src, wet)
