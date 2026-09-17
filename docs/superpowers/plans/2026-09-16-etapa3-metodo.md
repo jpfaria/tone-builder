@@ -449,3 +449,36 @@ aceitos, sem a média. Nota com < 5 aceitos fica fora.
 
 A skill `tone-builder` só entra junto com o primeiro aparelho (etapa 4): sem render, o fluxo da
 skill para no passo 1 e não tem como ser testado de ponta a ponta com subagente (RED/GREEN).
+
+---
+
+## Resultado da Task 5 (16/09) — o validador reprovou o limiar de 10 dB
+
+**O "1,84 dB, zero falso positivo" de 16/09 não se reproduz.** Ele saiu de um rascunho
+(`valida_alvo.py`) com a guitarra renderizada por uma chain Two-Rock (`tr_3_bright_trad_p4`). O
+`valida_timbre_medida.py` commitado no `music-setup` usa uma chain Dumble e, rodado hoje, dá
+**2,17 dB e 2 falsos positivos** a −6 dB. Fatorial (fundo Demucs 6s × stems, início +2000 × 0
+amostras, guitarra Two-Rock × Dumble): **só a guitarra muda o número**. O port (`validator.py`) bate
+com o algoritmo original nas mesmas notas (2,97 dB / 2 falsos positivos nos dois).
+
+Varredura com as **96 notas**, 4 guitarras (DI cru, Dumble, Two-Rock, a chain final de *Gravity*),
+fundo sintético (ruído rosa + baixo) e real (`no_guitar` de *Gravity* a partir de 20 s), dominância
+−6 e 0 dB — dados completos em `2026-09-16-etapa3-validador-sweep96.json`:
+
+| destaque mínimo | combinações com erro ≤ 2 dB (de 16) | pior erro | falsos positivos, fundo sintético | falsos positivos, fundo real | notas mantidas a −6 dB, sintético |
+|---|---|---|---|---|---|
+| 10 dB (atual) | 5 | 3,68 | 1–4 | 3–11 | 78–90 |
+| 12 dB | 14 | 2,43 | 0 | 1–8 | 68–80 |
+| 13 dB | 16 | 1,87 | 0 | 1–5 | 63–77 |
+| 14 dB | 16 | 1,80 | 0 | 2–5 | 60–73 |
+| 15 dB | 16 | 1,56 | 0 | 0–3 | 59–69 |
+| 16 dB | 16 | 1,44 | 0 | 1–3 | 49–61 |
+| 18 dB | 16 | 1,40 | 0 | 1–3 | 34–48 |
+| 20 dB | 16 | 1,16 | 0 | 0–4 | 21–36 |
+
+- Com o fundo real, **zero falso positivo não acontece em limiar nenhum** entre 10 e 20 dB.
+- "Falso positivo" hoje = aceito na mix e com destaque abaixo do limiar na guitarra sozinha. Com
+  o limiar mais alto, um harmônico real da guitarra que fica logo abaixo dele também conta como
+  falso positivo; a definição mistura "não é a guitarra" com "é a guitarra, na borda".
+- Decisão pendente com o jpfaria (limiar e critério de falso positivo). O `validator.py` não foi
+  commitado com o teste vermelho.

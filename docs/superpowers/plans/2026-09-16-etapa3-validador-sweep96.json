@@ -1,0 +1,1282 @@
+[
+ {
+  "notes": 87,
+  "harmonics_per_note": 9.126436781609195,
+  "error_db": 3.5754166770501157,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 78,
+  "harmonics_per_note": 9.705128205128204,
+  "error_db": 2.952331643871325,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 82,
+  "harmonics_per_note": 10.073170731707316,
+  "error_db": 1.9898978441326025,
+  "false_positives": 4,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 8.511111111111111,
+  "error_db": 3.5002702775252112,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.91578947368421,
+  "error_db": 3.684509792827007,
+  "false_positives": 10,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 12.434782608695652,
+  "error_db": 3.2975379323793863,
+  "false_positives": 9,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.926315789473684,
+  "error_db": 1.4986546707361394,
+  "false_positives": 11,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.8,
+  "error_db": 2.4980470999571107,
+  "false_positives": 6,
+  "dominance_db": -6,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 10.258064516129032,
+  "error_db": 2.7330983735226178,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 10.662790697674419,
+  "error_db": 2.2324527018134286,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 11.244444444444444,
+  "error_db": 1.2495710072015802,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 9.864583333333334,
+  "error_db": 2.3957675203484086,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.8,
+  "error_db": 2.589985684335904,
+  "false_positives": 10,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 13.08421052631579,
+  "error_db": 2.356891053741126,
+  "false_positives": 9,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 13.642105263157895,
+  "error_db": 0.8625751681599086,
+  "false_positives": 11,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 13.645833333333334,
+  "error_db": 1.503587996435081,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 10,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 79,
+  "harmonics_per_note": 7.822784810126582,
+  "error_db": 1.1197412725869165,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 68,
+  "harmonics_per_note": 8.970588235294118,
+  "error_db": 0.9982599744922205,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 74,
+  "harmonics_per_note": 9.5,
+  "error_db": 1.0566107062699328,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 80,
+  "harmonics_per_note": 7.475,
+  "error_db": 1.183418372329117,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.297872340425531,
+  "error_db": 2.426156197881835,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 91,
+  "harmonics_per_note": 11.615384615384615,
+  "error_db": 2.282335713587675,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 12.042553191489361,
+  "error_db": 1.349415166798366,
+  "false_positives": 8,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.989473684210527,
+  "error_db": 1.6898205567391575,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 9.709302325581396,
+  "error_db": 0.8046350111814994,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 77,
+  "harmonics_per_note": 10.415584415584416,
+  "error_db": 0.8541698667580768,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 10.616279069767442,
+  "error_db": 0.8422696613853886,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 8.922222222222222,
+  "error_db": 0.8331212854018288,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.073684210526316,
+  "error_db": 1.7848305950049597,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.273684210526316,
+  "error_db": 1.5284590777526728,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.673684210526316,
+  "error_db": 0.8028947134418685,
+  "false_positives": 7,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 12.854166666666666,
+  "error_db": 1.031692393557354,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 12,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 77,
+  "harmonics_per_note": 7.363636363636363,
+  "error_db": 1.038395382458973,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 63,
+  "harmonics_per_note": 8.603174603174603,
+  "error_db": 0.7963448720827216,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 72,
+  "harmonics_per_note": 9.01388888888889,
+  "error_db": 0.9713106352999353,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 75,
+  "harmonics_per_note": 7.1466666666666665,
+  "error_db": 0.9701866637679346,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 10.98936170212766,
+  "error_db": 1.75266208886489,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 91,
+  "harmonics_per_note": 11.285714285714286,
+  "error_db": 1.8743499976492624,
+  "false_positives": 1,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 11.741935483870968,
+  "error_db": 1.177628233383404,
+  "false_positives": 5,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.663157894736843,
+  "error_db": 1.3381400688363925,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 85,
+  "harmonics_per_note": 9.435294117647059,
+  "error_db": 0.737537983422955,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 75,
+  "harmonics_per_note": 10.106666666666667,
+  "error_db": 0.7085645141502148,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 82,
+  "harmonics_per_note": 10.524390243902438,
+  "error_db": 0.7673073616549583,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 8.732558139534884,
+  "error_db": 0.7037226406103573,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.694736842105263,
+  "error_db": 1.1261006265471336,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.0,
+  "error_db": 1.3422664316975397,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.347368421052632,
+  "error_db": 0.7610062373249604,
+  "false_positives": 4,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 12.583333333333334,
+  "error_db": 0.8708366831434916,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 13,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 73,
+  "harmonics_per_note": 7.027397260273973,
+  "error_db": 0.9196209981330503,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 60,
+  "harmonics_per_note": 8.25,
+  "error_db": 0.6992299827761664,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 69,
+  "harmonics_per_note": 8.72463768115942,
+  "error_db": 0.9486538400521217,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 72,
+  "harmonics_per_note": 6.791666666666667,
+  "error_db": 0.8920016858117309,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 10.741935483870968,
+  "error_db": 1.5561767246873,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 11.21111111111111,
+  "error_db": 1.798378703998431,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 11.408602150537634,
+  "error_db": 1.1739305353420046,
+  "false_positives": 5,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.357894736842105,
+  "error_db": 1.1761102014840454,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 84,
+  "harmonics_per_note": 9.095238095238095,
+  "error_db": 0.7001367965022868,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 75,
+  "harmonics_per_note": 9.773333333333333,
+  "error_db": 0.6572290300582748,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 81,
+  "harmonics_per_note": 10.08641975308642,
+  "error_db": 0.6966465508867863,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 8.395348837209303,
+  "error_db": 0.6522132055660532,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.563829787234043,
+  "error_db": 1.0659526940175081,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.808510638297872,
+  "error_db": 1.2371456229143791,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 12.052631578947368,
+  "error_db": 0.7441438607402363,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 12.239583333333334,
+  "error_db": 0.721217393765571,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 14,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 69,
+  "harmonics_per_note": 6.681159420289855,
+  "error_db": 0.7603698133996964,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 59,
+  "harmonics_per_note": 7.745762711864407,
+  "error_db": 0.6446286001800728,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 63,
+  "harmonics_per_note": 8.365079365079366,
+  "error_db": 0.8943537504671563,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 63,
+  "harmonics_per_note": 6.714285714285714,
+  "error_db": 0.8129907027448905,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 10.53763440860215,
+  "error_db": 1.3562826295309411,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 11.022222222222222,
+  "error_db": 1.5609227467414108,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 11.184782608695652,
+  "error_db": 1.1602406674071017,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.094736842105263,
+  "error_db": 1.0292372270215355,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 83,
+  "harmonics_per_note": 8.783132530120483,
+  "error_db": 0.6590419391896686,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 72,
+  "harmonics_per_note": 9.583333333333334,
+  "error_db": 0.613941920451624,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 78,
+  "harmonics_per_note": 9.923076923076923,
+  "error_db": 0.634722679373785,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 84,
+  "harmonics_per_note": 8.107142857142858,
+  "error_db": 0.6049844218318634,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.329787234042554,
+  "error_db": 0.922296399746098,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 11.728260869565217,
+  "error_db": 1.1199176753278128,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.829787234042554,
+  "error_db": 0.7417176367722946,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 96,
+  "harmonics_per_note": 12.010416666666666,
+  "error_db": 0.5934424677494762,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 15,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 61,
+  "harmonics_per_note": 6.573770491803279,
+  "error_db": 0.7283124771353408,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 55,
+  "harmonics_per_note": 7.5636363636363635,
+  "error_db": 0.6089346701410853,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 58,
+  "harmonics_per_note": 8.0,
+  "error_db": 0.8548686498698141,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 49,
+  "harmonics_per_note": 6.755102040816326,
+  "error_db": 0.7616904388309824,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 10.333333333333334,
+  "error_db": 1.0130008436234303,
+  "false_positives": 1,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 10.855555555555556,
+  "error_db": 1.4437225656035833,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 91,
+  "harmonics_per_note": 10.923076923076923,
+  "error_db": 1.095545165523659,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 10.715789473684211,
+  "error_db": 0.8177296599170997,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 81,
+  "harmonics_per_note": 8.395061728395062,
+  "error_db": 0.6104608902385767,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 70,
+  "harmonics_per_note": 9.414285714285715,
+  "error_db": 0.5213042319611612,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 75,
+  "harmonics_per_note": 9.773333333333333,
+  "error_db": 0.5533052268078353,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 83,
+  "harmonics_per_note": 7.831325301204819,
+  "error_db": 0.5676736311816488,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 11.180851063829786,
+  "error_db": 0.6698957875241206,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 11.543478260869565,
+  "error_db": 0.9980045585658456,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 93,
+  "harmonics_per_note": 11.591397849462366,
+  "error_db": 0.7482651125797966,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.821052631578947,
+  "error_db": 0.5439130926815435,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 16,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 44,
+  "harmonics_per_note": 6.340909090909091,
+  "error_db": 0.5477872339401654,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 40,
+  "harmonics_per_note": 7.075,
+  "error_db": 0.5348459776735488,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 48,
+  "harmonics_per_note": 7.104166666666667,
+  "error_db": 0.5552328846777593,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 34,
+  "harmonics_per_note": 5.882352941176471,
+  "error_db": 0.5196079203974664,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 10.097826086956522,
+  "error_db": 1.018578773773736,
+  "false_positives": 1,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 88,
+  "harmonics_per_note": 10.602272727272727,
+  "error_db": 1.39866729302906,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 10.3,
+  "error_db": 1.1238234198507582,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 10.212765957446809,
+  "error_db": 0.796495558202987,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 75,
+  "harmonics_per_note": 7.666666666666667,
+  "error_db": 0.4178568838172751,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 64,
+  "harmonics_per_note": 8.96875,
+  "error_db": 0.41065001770032156,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 73,
+  "harmonics_per_note": 9.082191780821917,
+  "error_db": 0.49727301126364665,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 76,
+  "harmonics_per_note": 7.2631578947368425,
+  "error_db": 0.4607533365739965,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 94,
+  "harmonics_per_note": 10.819148936170214,
+  "error_db": 0.6072226450341304,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 11.130434782608695,
+  "error_db": 0.9968152145786832,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 91,
+  "harmonics_per_note": 11.065934065934066,
+  "error_db": 0.6777342039326124,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 11.210526315789474,
+  "error_db": 0.4306442275394994,
+  "false_positives": 1,
+  "dominance_db": 0,
+  "prom": 18,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 24,
+  "harmonics_per_note": 5.916666666666667,
+  "error_db": 0.47683101236149694,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 29,
+  "harmonics_per_note": 6.448275862068965,
+  "error_db": 0.4792446337266771,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 36,
+  "harmonics_per_note": 6.388888888888889,
+  "error_db": 0.4697849378932525,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 21,
+  "harmonics_per_note": 5.619047619047619,
+  "error_db": 0.4243388987164907,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 91,
+  "harmonics_per_note": 9.813186813186814,
+  "error_db": 0.9071817178189944,
+  "false_positives": 2,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 86,
+  "harmonics_per_note": 10.19767441860465,
+  "error_db": 1.1589199872261684,
+  "false_positives": 3,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 9.766666666666667,
+  "error_db": 1.1258634139926178,
+  "false_positives": 4,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 9.858695652173912,
+  "error_db": 0.6347078025386516,
+  "false_positives": 0,
+  "dominance_db": -6,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 71,
+  "harmonics_per_note": 6.957746478873239,
+  "error_db": 0.3693729820623118,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "DI"
+ },
+ {
+  "notes": 61,
+  "harmonics_per_note": 7.918032786885246,
+  "error_db": 0.33172991039250194,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 62,
+  "harmonics_per_note": 8.53225806451613,
+  "error_db": 0.35440198620411467,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 68,
+  "harmonics_per_note": 6.75,
+  "error_db": 0.39455156231429117,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "synth",
+  "guitar": "gravity"
+ },
+ {
+  "notes": 92,
+  "harmonics_per_note": 10.66304347826087,
+  "error_db": 0.5512799779702313,
+  "false_positives": 2,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "DI"
+ },
+ {
+  "notes": 89,
+  "harmonics_per_note": 11.134831460674157,
+  "error_db": 0.9131337038519328,
+  "false_positives": 3,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "dumble"
+ },
+ {
+  "notes": 90,
+  "harmonics_per_note": 10.422222222222222,
+  "error_db": 0.6443645753592449,
+  "false_positives": 4,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "tworock"
+ },
+ {
+  "notes": 95,
+  "harmonics_per_note": 10.74736842105263,
+  "error_db": 0.393339095087015,
+  "false_positives": 0,
+  "dominance_db": 0,
+  "prom": 20,
+  "bg": "real",
+  "guitar": "gravity"
+ }
+]
