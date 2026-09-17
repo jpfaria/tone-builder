@@ -9,6 +9,12 @@ from pathlib import Path
 import soundfile as sf
 
 from tone_builder import library, recorder
+from tone_builder.audio import load_mono
+from tone_builder.strings import library_by_midi
+from tone_builder.target import build_target
+from tone_builder.validator import known_truth
+
+MAX_ERROR_DB = 2.0   # spec: known-truth error <= 2 dB at -6 dB dominance, zero false positives
 
 
 def _root(a) -> Path:
@@ -56,6 +62,32 @@ def _record(a) -> int:
     return 0 if not rep["rejected"] and not rep["missing"] else 1
 
 
+def _target(a) -> int:
+    import json
+    by_midi = library_by_midi(_root(a), a.guitar, a.position)
+    t = build_target(load_mono(Path(a.disc)), load_mono(Path(a.lead)), set(by_midi))
+    Path(a.out).write_text(json.dumps(t, indent=1))
+    for n in t:
+        m, sec = divmod(n["start_s"], 60)
+        print(f"{n['name']:4s} {int(m)}:{sec:04.1f}  {sum(n['accepted'])} harmonics")
+    print(f"{len(t)} target notes -> {a.out}")
+    return 0 if t else 1
+
+
+def _validate(a) -> int:
+    notes = library.list_notes(_root(a), a.guitar, a.position)
+    print("dominance  notes  harmonics/note  error dB  false positives")
+    rc = 0
+    for d in a.dominance:
+        r = known_truth(notes, dominance_db=d)
+        err = r["error_db"]
+        print(f"{d:+6.0f} dB  {r['notes']:5d}  {r['harmonics_per_note'] or 0:14.1f}  "
+              f"{err if err is not None else float('nan'):8.2f}  {r['false_positives']:15d}")
+        if d == -6 and (err is None or err > MAX_ERROR_DB or r["false_positives"] > 0):
+            rc = 1
+    return rc
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tone-builder")
     sub = p.add_subparsers(dest="group", required=True)
@@ -74,7 +106,23 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--channel", type=int)
     rp.add_argument("--seconds", type=float, default=45.0)
     rp.add_argument("--root")
+    tp = sub.add_parser("target", help="target notes: located on the separated track, level read on the record")
+    tp.add_argument("disc")
+    tp.add_argument("lead")
+    tp.add_argument("--guitar", required=True)
+    tp.add_argument("--position", required=True)
+    tp.add_argument("--out", required=True)
+    tp.add_argument("--root")
+    vp = sub.add_parser("validate", help="known-truth check of the target reading")
+    vp.add_argument("--guitar", default="prs-silver-sky-se")
+    vp.add_argument("--position", default="pos5")
+    vp.add_argument("--dominance", type=float, nargs="+", default=[-6.0, -3.0, 0.0, 6.0])
+    vp.add_argument("--root")
     a = p.parse_args(argv)
+    if a.group == "target":
+        return _target(a)
+    if a.group == "validate":
+        return _validate(a)
     return {"list": _list, "check": _check, "record": _record}[a.cmd](a)
 
 

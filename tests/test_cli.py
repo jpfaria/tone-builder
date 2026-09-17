@@ -37,3 +37,32 @@ def test_check_flags_bad_note(tmp_path: Path, capsys):
 def test_record_requires_device_and_channel(tmp_path: Path, capsys):
     assert cli.main(["library", "record", "g", "pos5", "1", "--root", str(tmp_path)]) == 2
     assert "--device" in capsys.readouterr().err
+
+
+def test_target_writes_notes_with_a_library_pair(tmp_path: Path, capsys):
+    import json
+
+    from tests.synth import note, write
+
+    pos = tmp_path / "lib" / "g" / "pos5"
+    write(pos / "c2-62-D4.wav", note(62, start_s=0.02))
+    library.write_yaml(tmp_path / "lib" / "g" / "guitarra.yaml", {"name": "g"})
+    disc = write(tmp_path / "disc.wav", note(62))
+    out = tmp_path / "target.json"
+    rc = cli.main(["target", str(disc), str(disc), "--guitar", "g", "--position", "pos5",
+                   "--root", str(tmp_path / "lib"), "--out", str(out)])
+    assert rc == 0
+    t = json.loads(out.read_text())
+    assert [n["midi"] for n in t] == [62]
+    assert "D4" in capsys.readouterr().out
+
+
+def test_validate_passes_on_the_shipped_library(capsys):
+    import pytest
+
+    notes = library.list_notes(library.library_dir(), "prs-silver-sky-se", "pos5")
+    if not notes or notes[0].stat().st_size < 1024:
+        pytest.skip("LFS objects not pulled")
+    assert cli.main(["validate", "--dominance", "-6", "0"]) == 0
+    out = capsys.readouterr().out
+    assert "-6" in out and "false positives" in out
