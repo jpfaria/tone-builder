@@ -21,9 +21,15 @@
 - `tone_builder/devices/pedal.py`: adaptadores pelos CLIs `mvave` e `ampero2` (resolve, knobs,
   varredura do knob de ganho em 20/40/60/80 % como equivalente das capturas, comandos de escrita,
   `reamp` por USB). Testes com dublê do CLI.
-- **Pendente, com aparelho:** MK-300 não estava conectada (nenhuma porta MIDI). Ampero II: o re-amp
-  por USB exige um patch com `SOURCE = USB OUT 3/4`, que só se ajusta na tela; não existe nenhum.
-  Também pendente: a comparação USB × entrada analógica da MK-300 (spec).
+- **Ampero II desbloqueada (17/09):** a fonte da entrada da chain A virou comando da lib —
+  `ampero2 input-source usb34|input` (mensagem `01 00 05 01 [00 00][fonte][00]` capturada do editor
+  com o MIDI Monitor; byte 6703 da imagem do patch; conferido ao vivo lendo de volta 0 e 2). O
+  aparelho `ampero2` do tone-builder usa `--work-patch` (qualquer slot vazio), liga `usb34` para
+  re-amplificar e termina os comandos da preset com `input-source input`. Teste real no A58-2:
+  Blues Butter → Dumbell ODS 1 renderizou um D4 da biblioteca como D4, pico −16,6 dBFS, zero
+  saturada.
+- **Pendente, com aparelho:** MK-300 não estava conectada (nenhuma porta MIDI); a comparação USB ×
+  entrada analógica da MK-300 (spec) também.
 
 ## Etapa 7 — skills dos aparelhos
 
