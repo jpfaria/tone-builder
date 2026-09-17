@@ -78,3 +78,13 @@ def test_mvave_resolve_and_fixed_chain(tmp_path):
     assert ["enable", "AMP", "off"] in cmds and ["model", "DS", "2TS8"] in cmds and ["enable", "DS", "on"] in cmds
     with pytest.raises(RenderError):
         dev.apply_commands([{"category": "DS", "model": "a", "knobs": {}}, {"category": "DS", "model": "b", "knobs": {}}])
+
+
+def test_ampero_sets_usb_input_for_reamp_and_restores_it_in_the_preset(tmp_path):
+    dev = AmperoDevice(tmp_path, "A58-2", FakeAmpero())
+    blocks = [{"category": "DRV", "model": "Blues Butter", "knobs": {}}]
+    cmds = dev.apply_commands(blocks)
+    assert cmds[:2] == [["load", "A58-2"], ["input-source", "usb34"]]
+    preset = dev.preset(blocks, "x")
+    assert preset["commands"][-1] == ["input-source", "input"]
+    assert ["input-source", "usb34"] not in preset["commands"]

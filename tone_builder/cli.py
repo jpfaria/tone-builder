@@ -9,7 +9,7 @@ from pathlib import Path
 import soundfile as sf
 import yaml
 
-from tone_builder import library, recorder
+from tone_builder import lead, library, recorder
 from tone_builder.audio import load_mono
 from tone_builder.strings import library_by_midi
 from tone_builder.target import build_target
@@ -91,11 +91,11 @@ def _build(a) -> int:
         device = OpenRigDevice(Path(a.plugins_root), out / "work")
     elif a.device == "ampero2":
         from tone_builder.devices.pedal import AmperoDevice
-        if not a.reamp_patch:
-            print("build: --reamp-patch is required for ampero2 (a patch whose input SOURCE = USB OUT 3/4, "
-                  "set on the touchscreen)", file=sys.stderr)
+        if not a.work_patch:
+            print("build: --work-patch is required for ampero2 (an empty patch to build and re-amp in)",
+                  file=sys.stderr)
             return 2
-        device = AmperoDevice(out / "work", a.reamp_patch)
+        device = AmperoDevice(out / "work", a.work_patch)
     elif a.device == "mvave":
         from tone_builder.devices.pedal import MvaveDevice
         device = MvaveDevice(out / "work")
@@ -103,7 +103,12 @@ def _build(a) -> int:
         print(f"build: unknown device {a.device!r} (openrig, ampero2, mvave)", file=sys.stderr)
         return 2
     try:
-        res = build_tone(load_mono(Path(a.disc)), load_mono(Path(a.lead)),
+        lead_path = lead.resolve_lead(Path(a.disc), Path(a.lead) if a.lead else None, lead.tone_analyzer_separate)
+    except lead.LeadError as e:
+        print(f"build: {e}", file=sys.stderr)
+        return 5
+    try:
+        res = build_tone(load_mono(Path(a.disc)), load_mono(lead_path),
                          library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
                          device, out / "work", a.name)
     except Unresolved as e:
@@ -137,7 +142,10 @@ def _verify(a) -> int:
         run = Runner(a.device)
 
         def renderer(src, dst):
-            for cmd in (["load", a.saved], ["reamp", str(src), str(dst), "--mono"]):
+            cmds = [["load", a.saved], ["reamp", str(src), str(dst), "--mono"]]
+            if a.device == "ampero2":
+                cmds.insert(1, ["input-source", "usb34"])   # edit buffer only; the saved patch keeps `input`
+            for cmd in cmds:
                 code, text = run(cmd)
                 if code != 0:
                     raise RenderError(f"{a.device} {' '.join(cmd)}: {text.strip()[:300]}")
@@ -196,14 +204,15 @@ def main(argv: list[str] | None = None) -> int:
     bp = sub.add_parser("build", help="build one tone on one device")
     bp.add_argument("--device", required=True)
     bp.add_argument("--disc", required=True)
-    bp.add_argument("--lead", required=True)
+    bp.add_argument("--lead", help="separated guitar track; without it, <disc dir>/lead.wav is used, "
+                                   "or made with `tone-analyzer separate` (needs demucs)")
     bp.add_argument("--research", required=True)
     bp.add_argument("--guitar", required=True)
     bp.add_argument("--position", required=True)
     bp.add_argument("--name", required=True)
     bp.add_argument("--out", required=True)
     bp.add_argument("--plugins-root")
-    bp.add_argument("--reamp-patch")
+    bp.add_argument("--work-patch")
     bp.add_argument("--root")
     wp = sub.add_parser("verify", help="render what was saved on the device and compare with the build report")
     wp.add_argument("--device", required=True)

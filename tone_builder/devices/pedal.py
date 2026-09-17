@@ -6,8 +6,9 @@ settings are the model defaults plus its gain knob swept over the range —
 the counterpart of enumerating a NAM model's captures.
 
 Rendering plays the DI through the pedal over USB audio (`reamp`):
-- Ampero II: needs a working patch whose input node SOURCE = USB OUT 3/4, set
-  on the touchscreen (not settable over USB); everything is built inside it.
+- Ampero II: everything is built in a work patch (an empty slot) whose chain A input
+  SOURCE is switched to USB OUT 3/4 with `ampero2 input-source usb34`; the preset's
+  commands switch it back to `input` so the saved patch plays the guitar.
 - MK-300: `mvave reamp` switches USB Audio to RESAMPLE and restores it.
 """
 
@@ -134,9 +135,9 @@ class AmperoDevice(PedalDevice):
     EQ_MODEL = "Graphic EQ"
     TIE = 0.05
 
-    def __init__(self, workdir: Path, reamp_patch: str, runner=None):
+    def __init__(self, workdir: Path, work_patch: str, runner=None):
         super().__init__(workdir, runner)
-        self.reamp_patch = reamp_patch
+        self.work_patch = work_patch
 
     def find(self, category: str, unit: str) -> list[str]:
         code, out = self.run(["resolve", category, unit, "--json"])
@@ -160,7 +161,7 @@ class AmperoDevice(PedalDevice):
     def apply_commands(self, blocks: list[dict]) -> list[list[str]]:
         if len(blocks) > self.SLOTS:
             raise RenderError(f"{len(blocks)} blocks do not fit the {self.SLOTS} slots")
-        cmds = [["load", self.reamp_patch]]
+        cmds = [["load", self.work_patch], ["input-source", "usb34"]]
         for i in range(self.SLOTS):
             if i < len(blocks):
                 b = blocks[i]
@@ -177,6 +178,12 @@ class AmperoDevice(PedalDevice):
         freqs = {k["name"]: _hz(k["name"]) for k in self.knobs("EQ", self.EQ_MODEL) if _hz(k["name"])}
         knobs = {_eq_knob(freqs, hz): round(g) for hz, g in band_gains.items()}
         return [{"category": "EQ", "model": self.EQ_MODEL, "knobs": knobs}]
+
+
+    def preset(self, blocks: list[dict], name: str) -> dict:
+        cmds = [c for c in self.apply_commands(blocks) if c != ["input-source", "usb34"]]
+        cmds.append(["input-source", "input"])
+        return {"device": self.exe, "name": name, "blocks": blocks, "commands": cmds}
 
 
 class MvaveDevice(PedalDevice):

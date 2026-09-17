@@ -14,10 +14,12 @@ The number decides between researched candidates; the user's ear never validates
 
 ## Collect — ask only what no file answers
 
+Everything tone-builder reads or writes for a song lives in `~/.tone-builder/<song>/`. `~/.openrig/` belongs to the OpenRig app: only its `presets/` is touched — to check a name is free and to save the OpenRig preset. `<song>` = `<song>-<artist>` slug, e.g. `gravity-john-mayer`.
+
 | need | where to look first | missing → |
 |---|---|---|
-| record audio (full mix) | `~/.openrig/evaluations/<song>/refs/original.*` | ask; without it nothing is measured: stop |
-| separated guitar track | `refs/lead.wav`, `refs/guitar*.wav` | ask |
+| record audio (full mix) | `~/.tone-builder/<song>/refs/original.*` | handed over elsewhere → copy it there, then use that copy as `--disc`. None → ask; without it nothing is measured: stop |
+| separated guitar track | `~/.tone-builder/<song>/refs/lead.wav` | never ask: leave `--lead` out and `build` separates the record into that file (`demucs` on PATH; ~2 min). The user handed one over → pass it as `--lead` |
 | guitar + selector position | `$TB library list` — one recorded → use it | ask which; offer `library record` |
 | devices | the request | ask |
 | preset name / slot | — never ask | `DIG - <Artist> - <Song> (<part>)`; if that name already exists (`~/.openrig/presets/`, `ampero2 patches`, `mvave presets`) append ` tb2`, ` tb3`…; next empty slot; never overwrite |
@@ -28,8 +30,8 @@ The number decides between researched candidates; the user's ear never validates
    Open every page; quote it. A search summary is not a source. Record rig ≠ tour rig.
    Every class `single_drive stacked_drives boost compressor amp cab eq time_fx` is either a block
    or a `not_found` entry with what was searched — or the report comes out `parcial`.
-2. `$TB build --device openrig|ampero2|mvave --disc … --lead … --research … --guitar … --position …
-   --name … --out <song>/tb/<device>-v<N> [--plugins-root …] [--reamp-patch …]` — minutes to hours: run it
+2. `$TB build --device openrig|ampero2|mvave --disc … [--lead …] --research … --guitar … --position …
+   --name … --out ~/.tone-builder/<song>/<device>-v<N> [--plugins-root …] [--work-patch …]` — minutes to hours: run it
    in the background, one device at a time.
    - exit 3 lists units with no catalog model: check the catalog; if truly absent set
      `absent_from_catalog: true` on that block (it becomes the class reason). Never type a model id.
@@ -44,7 +46,7 @@ The number decides between researched candidates; the user's ear never validates
 |---|---|---|
 | OpenRig | MCP: new preset, `save`, then reread `~/.openrig/presets/<name>.yaml`; `--saved` = that file | — |
 | MK-300 | `preset.yaml` `commands` via `mvave`, then `mvave save N NAME` | no MIDI port → report "not connected", do the other devices |
-| Ampero II | `commands` via `ampero2`, `ampero2 save DEST NAME` | no patch with input SOURCE = USB OUT 3/4 (touchscreen only) → report it, do the others |
+| Ampero II | `--work-patch` = an empty slot; `commands` via `ampero2` (they end with `input-source input`), `ampero2 save DEST NAME` | no MIDI port → report "not connected", do the others |
 
 ## Never
 

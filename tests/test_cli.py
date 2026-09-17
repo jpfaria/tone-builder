@@ -68,8 +68,27 @@ def test_validate_passes_on_the_shipped_library(capsys):
     assert "-6" in out and "false positives" in out
 
 
-def test_build_on_ampero_needs_the_reamp_patch(tmp_path, capsys):
+def test_build_on_ampero_needs_the_work_patch(tmp_path, capsys):
     rc = cli.main(["build", "--device", "ampero2", "--disc", "d.wav", "--lead", "l.wav", "--research", "r.yaml",
                    "--guitar", "g", "--position", "p", "--name", "n", "--out", str(tmp_path)])
     assert rc == 2
-    assert "USB OUT 3/4" in capsys.readouterr().err
+    assert "--work-patch" in capsys.readouterr().err
+
+
+def test_build_without_a_lead_separates_the_record(tmp_path, capsys, monkeypatch):
+    from tests.synth import note, write
+    from tone_builder import lead
+
+    disc = write(tmp_path / "refs" / "original.wav", note(62))
+    seen = []
+
+    def failing(d, out_dir):
+        seen.append(d)
+        raise lead.LeadError("demucs not found")
+
+    monkeypatch.setattr(lead, "tone_analyzer_separate", failing)
+    rc = cli.main(["build", "--device", "mvave", "--disc", str(disc), "--research", "r.yaml",
+                   "--guitar", "g", "--position", "pos5", "--name", "n", "--out", str(tmp_path / "o")])
+    assert rc == 5
+    assert seen == [disc]
+    assert "demucs not found" in capsys.readouterr().err
