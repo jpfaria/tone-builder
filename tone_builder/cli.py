@@ -9,7 +9,7 @@ from pathlib import Path
 import soundfile as sf
 import yaml
 
-from tone_builder import lead, library, recorder
+from tone_builder import library, recorder, song_audio
 from tone_builder.audio import load_mono
 from tone_builder.strings import library_by_midi
 from tone_builder.target import build_target
@@ -103,12 +103,14 @@ def _build(a) -> int:
         print(f"build: unknown device {a.device!r} (openrig, ampero2, mvave)", file=sys.stderr)
         return 2
     try:
-        lead_path = lead.resolve_lead(Path(a.disc), Path(a.lead) if a.lead else None, lead.tone_analyzer_separate)
-    except lead.LeadError as e:
+        disc_path, lead_path = song_audio.song_audio(
+            a.artist, a.song, a.role, Path(a.disc) if a.disc else None, Path(a.lead) if a.lead else None,
+            song_audio.tone_analyzer_ingest)
+    except song_audio.SongAudioError as e:
         print(f"build: {e}", file=sys.stderr)
         return 5
     try:
-        res = build_tone(load_mono(Path(a.disc)), load_mono(lead_path),
+        res = build_tone(load_mono(disc_path), load_mono(lead_path),
                          library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
                          device, out / "work", a.name)
     except Unresolved as e:
@@ -203,9 +205,12 @@ def main(argv: list[str] | None = None) -> int:
     vp.add_argument("--root")
     bp = sub.add_parser("build", help="build one tone on one device")
     bp.add_argument("--device", required=True)
-    bp.add_argument("--disc", required=True)
-    bp.add_argument("--lead", help="separated guitar track; without it, <disc dir>/lead.wav is used, "
-                                   "or made with `tone-analyzer separate` (needs demucs)")
+    bp.add_argument("--artist", required=True)
+    bp.add_argument("--song", required=True)
+    bp.add_argument("--role", default="guitars", help="which guitar of the song in tone-analyzer's library")
+    bp.add_argument("--disc", help="the record, only when the song is not yet in tone-analyzer's library "
+                                   "(`tone-analyzer tones find`); tone-analyzer separates, analyzes and stores it")
+    bp.add_argument("--lead", help="a separated guitar track handed over with --disc: stored instead of separating")
     bp.add_argument("--research", required=True)
     bp.add_argument("--guitar", required=True)
     bp.add_argument("--position", required=True)

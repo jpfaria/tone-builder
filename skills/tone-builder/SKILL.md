@@ -9,17 +9,17 @@ The method lives in code: `${CLAUDE_PLUGIN_ROOT}/docs/metodo.md` says why each s
 The number decides between researched candidates; the user's ear never validates.
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bootstrap.sh"; TB="${CLAUDE_PLUGIN_ROOT}/.venv/bin/tone-builder"
+"${CLAUDE_PLUGIN_ROOT}/bootstrap.sh"; TB="${CLAUDE_PLUGIN_ROOT}/.venv/bin/tone-builder"; TA="${CLAUDE_PLUGIN_ROOT}/.venv/bin/tone-analyzer"
 ```
 
 ## Collect — ask only what no file answers
 
-Everything tone-builder reads or writes for a song lives in `~/.tone-builder/<song>/`. `~/.openrig/` belongs to the OpenRig app: only its `presets/` is touched — to check a name is free and to save the OpenRig preset. `<song>` = `<song>-<artist>` slug, e.g. `gravity-john-mayer`.
+Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone-analyzer/tones/<artist>-<song>/`: full track + separated guitar). `~/.tone-builder/<song>/` holds only what compares or decides: `research.yaml`, builds, device results, reports — never audio, never a `refs/` folder. `~/.openrig/` belongs to the OpenRig app: only its `presets/` is touched — to check a name is free and to save the OpenRig preset. `<song>` = `<song>-<artist>` slug, e.g. `gravity-john-mayer`.
 
 | need | where to look first | missing → |
 |---|---|---|
-| record audio (full mix) | `~/.tone-builder/<song>/refs/original.*` | handed over elsewhere → copy it there, then use that copy as `--disc`. None → ask; without it nothing is measured: stop |
-| separated guitar track | `~/.tone-builder/<song>/refs/lead.wav` | never ask: leave `--lead` out and `build` separates the record into that file (`demucs` on PATH; ~2 min). The user handed one over → pass it as `--lead` |
+| record audio (full mix) | `$TA tones find "<song>"` — in the library → pass only `--artist --song`, no `--disc` | handed over → pass its path as `--disc`, where it is; `build` has tone-analyzer separate, analyze and store it (~3 min). m4a/AAC → `ffmpeg -ar 48000` to WAV first. None → ask; without it nothing is measured: stop |
+| separated guitar track | the same library entry (`<role>/reference.*`) | never ask and never separate by hand: `build` does it through tone-analyzer. The user handed one over → pass it as `--lead` together with `--disc`: tone-analyzer stores it as that role's reference instead of separating |
 | guitar + selector position | `$TB library list` — one recorded → use it | ask which; offer `library record` |
 | devices | the request | ask |
 | preset name / slot | — never ask | `DIG - <Artist> - <Song> (<part>)`; if that name already exists (`~/.openrig/presets/`, `ampero2 patches`, `mvave presets`) append ` tb2`, ` tb3`…; next empty slot; never overwrite |
@@ -30,7 +30,7 @@ Everything tone-builder reads or writes for a song lives in `~/.tone-builder/<so
    Open every page; quote it. A search summary is not a source. Record rig ≠ tour rig.
    Every class `single_drive stacked_drives boost compressor amp cab eq time_fx` is either a block
    or a `not_found` entry with what was searched — or the report comes out `parcial`.
-2. `$TB build --device openrig|ampero2|mvave --disc … [--lead …] --research … --guitar … --position …
+2. `$TB build --device openrig|ampero2|mvave --artist … --song … [--role guitars] [--disc … [--lead …]] --research … --guitar … --position …
    --name … --out ~/.tone-builder/<song>/<device>-v<N> [--plugins-root …] [--work-patch …]` — minutes to hours: run it
    in the background, one device at a time.
    - exit 3 lists units with no catalog model: check the catalog; if truly absent set
