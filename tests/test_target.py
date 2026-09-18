@@ -2,7 +2,12 @@ import numpy as np
 import pytest
 
 from tests.synth import SR, note
-from tone_builder.target import MIN_HARMONICS, build_target, freqs_of, in_window, midi_hz
+from tone_builder.target import (MIN_HARMONICS, build_chord_target, build_target, chord_freqs,
+                                  freqs_of, in_window, midi_hz)
+
+
+def _chord(midis, **k):
+    return sum(note(m, **k) for m in midis)
 
 
 def test_target_note_takes_level_from_the_record():
@@ -45,3 +50,28 @@ def test_note_entry_carries_kind_and_frequencies():
 
 def test_old_target_json_without_frequencies_still_reads():
     assert freqs_of({"midi": 69})[1] == pytest.approx(880.0)
+
+
+def test_chord_frequencies_drop_shared_harmonics():
+    f = chord_freqs([40, 52])          # E2 and E3: every E3 harmonic is an E2 harmonic
+    e2 = midi_hz(40)
+    assert all(abs(x / e2 - round(x / e2)) < 0.03 for x in f)
+    assert not any(abs(x - 2 * e2) / x < 0.024 for x in f)
+
+
+def test_chord_target_reads_the_record_on_each_note():
+    # seconds=1.0 (vs. the note() default 1.5): at 1.5s the decaying E2+B2+G#3 mix beats into a
+    # second spurious onset around 1.47s (note_onsets sees env rise 1.5x on the interference
+    # hump) that has nothing to do with the code under test; 1.0s keeps the one real attack.
+    x = _chord([40, 47, 56], n_harm=12, seconds=1.0)
+    t = build_chord_target(x, x)
+    assert len(t) == 1 and t[0]["kind"] == "chord" and t[0]["midis"] == [40, 47, 56]
+    assert t[0]["name"] == "E2+B2+G#3"
+    assert sum(t[0]["accepted"]) >= MIN_HARMONICS
+
+
+def test_chord_target_honours_the_window_and_counts():
+    x = _chord([40, 47, 56], n_harm=12, seconds=1.0)
+    stats = {}
+    assert build_chord_target(x, x, window=(1.0, None), stats=stats) == []
+    assert stats["outside_window"] == 1
