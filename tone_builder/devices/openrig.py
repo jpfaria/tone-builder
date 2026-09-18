@@ -11,6 +11,7 @@ Known traps (measured 15-16/09):
 from __future__ import annotations
 
 import os
+import time
 import subprocess
 import tempfile
 from pathlib import Path
@@ -67,7 +68,11 @@ def chain(blocks: list[dict], name: str = "tone-builder") -> dict:
 
 
 class OpenRigRenderer:
-    def __init__(self, blocks: list[dict], workdir: Path, binary: str | None = None, run=subprocess.run):
+    MISSING_RETRIES = 24      # x wait_s: two minutes for an app being reinstalled under a long build
+
+    def __init__(self, blocks: list[dict], workdir: Path, binary: str | None = None, run=subprocess.run,
+                 wait_s: float = 5.0):
+        self.wait_s = wait_s
         self.blocks = blocks
         self.workdir = Path(workdir)
         self.binary = binary or render_bin()
@@ -84,8 +89,15 @@ class OpenRigRenderer:
                 from tone_builder.audio import to_mono_48k
                 inp = Path(tmp) / "di48k.wav"
                 sf.write(str(inp), to_mono_48k(x, sr).astype(np.float32), SR, subtype="FLOAT")
-            r = self.run([self.binary, "--chain", str(chain_path), "--input", str(inp), "--output", str(dst)],
-                         capture_output=True, text=True)
+            cmd = [self.binary, "--chain", str(chain_path), "--input", str(inp), "--output", str(dst)]
+            for attempt in range(self.MISSING_RETRIES):
+                try:
+                    r = self.run(cmd, capture_output=True, text=True)
+                    break
+                except FileNotFoundError:
+                    time.sleep(self.wait_s)
+            else:
+                raise RenderError(f"openrig-render is missing: {self.binary}")
             text = ((r.stdout or "") + (r.stderr or "")).lower()
             if "ignoring" in text:
                 raise RenderError(f"openrig-render ignored a block: {text.strip()[:300]}")

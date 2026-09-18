@@ -88,3 +88,37 @@ def test_params_set_by_ear_override_the_model_defaults(tmp_path):
     dev = OpenRigDevice(_plugins(tmp_path), tmp_path / "w")
     opts, _ = dev.resolve({"blocks": [{"class": "cab", "unit": "Vox AC30 Bright", "params": {"preset": "beta91", "mix": 24.0}}]})
     assert [o.blocks[0]["params"] for o in opts["cab"]] == [{"preset": "beta91", "mix": 24.0}]
+
+
+def test_a_render_binary_missing_for_a_moment_is_waited_for(tmp_path):
+    """18/09: OpenRig.app was reinstalled during a 2-hour build; the binary was gone for seconds."""
+    import numpy as np
+    import soundfile as sf
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append(cmd)
+        if len(calls) < 3:
+            raise FileNotFoundError(cmd[0])
+        sf.write(cmd[cmd.index("--output") + 1], np.zeros(480, dtype=np.float32), 48000)
+        return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    di = tmp_path / "di.wav"
+    sf.write(di, np.zeros(480, dtype=np.float32), 48000)
+    r = OpenRigRenderer([], tmp_path / "w", binary="/nope/openrig-render", run=run, wait_s=0.0)
+    r(di, tmp_path / "out.wav")
+    assert len(calls) == 3
+
+
+def test_a_render_binary_that_never_comes_back_is_a_render_error(tmp_path):
+    import numpy as np
+    import soundfile as sf
+    import pytest
+
+    def run(cmd, **kw):
+        raise FileNotFoundError(cmd[0])
+
+    di = tmp_path / "di.wav"
+    sf.write(di, np.zeros(480, dtype=np.float32), 48000)
+    with pytest.raises(RenderError, match="openrig-render"):
+        OpenRigRenderer([], tmp_path / "w", binary="/nope/openrig-render", run=run, wait_s=0.0)(di, tmp_path / "o.wav")
