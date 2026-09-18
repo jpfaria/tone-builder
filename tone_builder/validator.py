@@ -88,12 +88,12 @@ def known_truth(notes: list[Path], dominance_db: float = -6.0, seed: int = 0) ->
 
 
 CHORD_SET_OK_PCT = 90.0
-# A strum spreads the strings over tens of ms; but `note_onsets` (tone_analyzer) only accepts
-# an attack whose envelope is already within 80% of its next-block value (a sharp pluck) — a
-# realistic 30 ms strum leaves the envelope still ramping and the onset is missed ~1 in 5 times
-# (measured: 100% at 5 ms, 78% at 30 ms, at zero accompaniment noise). 5 ms keeps a real,
-# non-zero attack spread while staying inside that detector's resolution.
-STAGGER_S = 0.005
+STAGGER_S = 0.030      # a strum spreads the strings over up to 30 ms
+# The chord detector never sees the mix in `build`: it runs on the separated guitar track, which
+# still carries some of the band the separator failed to remove. RESIDUE_DB models that residue as
+# pink noise 20 dB below the guitar's own RMS — quiet, but present — while the LEVEL reading (error_db,
+# false_positives) keeps using the full mix at the requested `dominance_db`, exactly like the record.
+RESIDUE_DB = -20.0
 # interval shapes over the root, by name
 SHAPES = {
     "power2": [0, 7], "power3": [0, 7, 12],
@@ -104,6 +104,7 @@ ROOTS = range(40, 53)   # E2..E3
 
 
 def known_truth_chords(by_midi: dict, detector: str, dominance_db: float = -6.0, seed: int = 0,
+                       stagger_s: float = STAGGER_S, residue_db: float | None = RESIDUE_DB,
                        workdir: Path = Path("validate-chords")) -> dict:
     rng = np.random.default_rng(seed)
     span = int(DUR_S * SR)
@@ -115,7 +116,7 @@ def known_truth_chords(by_midi: dict, detector: str, dominance_db: float = -6.0,
             vs = chords_mod.voicings(midis, by_midi)
             if not vs:
                 continue
-            offs = sorted(rng.uniform(0, STAGGER_S, len(midis)))
+            offs = sorted(rng.uniform(0, stagger_s, len(midis))) if stagger_s else [0.0] * len(midis)
             di = chords_mod.sum_di(vs[0], Path(workdir) / f"{shape}-{root}.wav", offsets_s=list(offs))
             x = load_mono(di)
             a = int(chords_mod.PREROLL_S * SR)
@@ -126,8 +127,13 @@ def known_truth_chords(by_midi: dict, detector: str, dominance_db: float = -6.0,
             acc = _unit_rms(_unit_rms(_pink(span, rng)) + _unit_rms(_bass(span, rng)))
             g_rms = np.sqrt(np.mean(guitar ** 2))
             mix = np.concatenate([np.zeros(SR // 2), guitar + acc * g_rms / 10 ** (dominance_db / 20), np.zeros(SR // 2)])
+            if residue_db is not None:
+                residue = _unit_rms(_pink(span, rng)) * g_rms * 10 ** (residue_db / 20)
+                sep = np.concatenate([np.zeros(SR // 2), guitar + residue, np.zeros(SR // 2)])
+            else:
+                sep = np.concatenate([np.zeros(SR // 2), guitar, np.zeros(SR // 2)])
             n += 1
-            heard = detect_chords(mix, SR, dur_s=DUR_S, detector=detector)
+            heard = detect_chords(sep, SR, dur_s=DUR_S, detector=detector)
             got = heard[0]["midis"] if heard else []
             truth_r = chords_mod.reduce_octaves(midis)
             got_r = chords_mod.reduce_octaves(got)
