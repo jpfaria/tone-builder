@@ -128,6 +128,32 @@ def _build(a) -> int:
     return 0
 
 
+def _linearity(a) -> int:
+    import json
+    from tone_builder.devices.openrig import OpenRigDevice
+    from tone_builder.linearity import rank
+    if a.device != "openrig":
+        print("linearity: only openrig renders offline; a pedal is measured by its own build", file=sys.stderr)
+        return 2
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    device = OpenRigDevice(Path(a.plugins_root), out / "work")
+    options, unresolved = device.resolve({"blocks": [{"class": a.klass, "unit": u} for u in a.unit]})
+    if unresolved:
+        print("no model in the catalog:", *unresolved, sep="\n  ", file=sys.stderr)
+        return 3
+    by_name = {o.name: o for o in options.get(a.klass, [])}
+    by_midi = library_by_midi(_root(a), a.guitar, a.position)
+    midis = sorted(by_midi)
+    dis = [by_midi[m][0] for m in (midis[0], midis[len(midis) // 3], midis[2 * len(midis) // 3], midis[-1])]
+    rows = rank(list(by_name), lambda n: device.renderer(by_name[n].blocks), dis, out / "work", device.jobs)
+    (out / "linearity.json").write_text(json.dumps(rows, indent=1))
+    for r in rows[: a.top]:
+        print(f"{r.get('nonlinearity_db', float('nan')):6.2f} dB  compression {r.get('compression_db', float('nan')):5.2f}  {r['name']}")
+    print(f"{len(rows)} options -> {out / 'linearity.json'}")
+    return 0
+
+
 def _verify(a) -> int:
     import json
     from tone_builder.verify import verify
@@ -219,6 +245,16 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--plugins-root")
     bp.add_argument("--work-patch")
     bp.add_argument("--root")
+    np_ = sub.add_parser("linearity", help="rank a unit's captures by how clean they are (no recording needed)")
+    np_.add_argument("--device", required=True)
+    np_.add_argument("--class", dest="klass", default="amp")
+    np_.add_argument("--unit", action="append", required=True, help="a researched unit name, or 'any'; repeatable")
+    np_.add_argument("--guitar", required=True)
+    np_.add_argument("--position", required=True)
+    np_.add_argument("--out", required=True)
+    np_.add_argument("--plugins-root", required=True)
+    np_.add_argument("--top", type=int, default=15)
+    np_.add_argument("--root")
     wp = sub.add_parser("verify", help="render what was saved on the device and compare with the build report")
     wp.add_argument("--device", required=True)
     wp.add_argument("--build-dir", required=True)
@@ -226,6 +262,8 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     if a.group == "verify":
         return _verify(a)
+    if a.group == "linearity":
+        return _linearity(a)
     if a.group == "build":
         return _build(a)
     if a.group == "target":
