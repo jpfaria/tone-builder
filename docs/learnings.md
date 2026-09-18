@@ -43,3 +43,9 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
 - **Gotcha / invariant:** tone-analyzer's repo keeps its `tones/` library in Git LFS. `pip install git+…/tone-analyzer` clones it and the LFS smudge pulls every song (2.3 GB) into a temp dir — once per install, and again for every dependency that names it. On 18/09 that filled the disk ("no space left on device") and the install failed as "Failed to build 'tone-analyzer'", hiding the cause.
 - **Why it matters:** an install needs the code, never the audio. `bootstrap.sh` now exports `GIT_LFS_SKIP_SMUDGE=1` (install: 51 s).
 - **Applies to:** any `pip install` of tone-analyzer, mvave, ampero2 or tone-builder outside `bootstrap.sh` — set `GIT_LFS_SKIP_SMUDGE=1` first.
+
+## 2026-09-18 — OpenRig: a new rig slot is not guaranteed; check the active preset before writing
+
+- **Gotcha / invariant:** `apply_rig_nav {Preset: -1}` returns `ChainReloaded` even when no new slot becomes active (seen right after the app restarted and the MCP reconnected). `rename_rig_preset` and `load_chain_preset` then act on whatever slot IS active — here they overwrote "Even Flow (base) tb2" with the solo chain, while `save_chain_preset` still wrote a correct `.yaml`, so `verify` on the file passed and hid it.
+- **Why it matters:** `verify` reads `~/.openrig/presets/<name>.yaml`, not the rig slot the user plays; the user opened the slot and found no TS9.
+- **Applies to:** every OpenRig write. After the add, read `openrig://chains/<chain>/presets` and require `active_preset` to be the new `New Preset N` before rename/load; after saving, re-read `~/.openrig/project.yaml` and check each touched slot's blocks, not only the preset file.
