@@ -94,7 +94,8 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
         cands = [Candidate(o.name, klass, o.unit, device.renderer(assemble({**state, slot: o.blocks})),
                            o.gain_reduction_db) for o in opts]
         res, base = run_battery(device.renderer(assemble(state)), cands, assignments, research, workdir / klass,
-                                derived_units={klass: set(extra_units)} if extra_units else None)
+                                derived_units={klass: set(extra_units)} if extra_units else None,
+                                jobs=getattr(device, "jobs", 1))
         entry = res[klass]
         entry["baseline_deviation_db"] = base["deviation"]
         entry.pop("per_note_all", None)

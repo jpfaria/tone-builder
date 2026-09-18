@@ -154,6 +154,7 @@ def compressor_settings(manifest: dict) -> list[dict]:
 
 
 class OpenRigDevice:
+    jobs = int(os.environ.get("TONE_BUILDER_JOBS", "6"))   # offline renders: safe in parallel
     def __init__(self, plugins_root: Path, workdir: Path, binary: str | None = None, run=subprocess.run):
         self.catalog = load_catalog(plugins_root)
         self.workdir = Path(workdir)
@@ -168,13 +169,17 @@ class OpenRigDevice:
             if b.get("absent_from_catalog"):
                 continue
             klass = b["class"]
-            models = find_models(self.catalog, b["unit"], CLASS_TYPES.get(klass, ()))
+            types = CLASS_TYPES.get(klass, ())
+            models = (sorted(k for k, m in self.catalog.items() if m.get("type") in types) if b["unit"] == "any"
+                      else find_models(self.catalog, b["unit"], types))
             if not models:
                 unresolved.append(f"{klass}: {b['unit']}")
                 continue
             for mid in models:
                 m = self.catalog[mid]
                 sets = compressor_settings(m) if klass == "compressor" else settings(m)
+                if b.get("params"):
+                    sets = [dict(b["params"])]            # fixed by ear in the research: shipped as given
                 for s in sets:
                     label = ",".join(f"{k}={v}" for k, v in s.items())
                     options.setdefault(klass, []).append(

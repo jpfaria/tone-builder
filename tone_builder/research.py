@@ -8,6 +8,11 @@ list; measurement only decides among them.
 File format:
   song, part
   blocks:    [{class, unit, era: record|tour, sources: [url, ...]}]
+             a block is sourced by a URL that was opened, OR by a first-hand `statement`
+             {who, date, channel, quote} (the player told us; there is no page to cite).
+             `unit: any` = the source names the class, not the unit ("compressor"): every model of
+             that class competes. Not for time_fx: a delay or reverb the number cannot see is never
+             picked blindly. `params: {...}` = settings fixed by ear, shipped as given.
   not_found: [{class, searched: [url or query, ...]}]
 """
 
@@ -17,6 +22,7 @@ from pathlib import Path
 
 import yaml
 
+ANY = "any"   # the source names the class, not the unit
 CLASSES = ("single_drive", "stacked_drives", "boost", "compressor", "amp", "cab", "eq", "time_fx")
 
 
@@ -30,8 +36,14 @@ def validate(r: dict) -> list[str]:
         label = f"blocks[{i}] {b.get('unit')!r}"
         if b.get("class") not in CLASSES:
             errors.append(f"{label}: unknown class {b.get('class')!r}")
-        if not any(str(s).startswith(("http://", "https://")) for s in b.get("sources") or []):
-            errors.append(f"{label}: no source URL (a search summary is not a source; open the page)")
+        has_url = any(str(s).startswith(("http://", "https://")) for s in b.get("sources") or [])
+        st = b.get("statement") or {}
+        has_statement = all(str(st.get(k) or "").strip() for k in ("who", "date", "channel", "quote"))
+        if not (has_url or has_statement):
+            errors.append(f"{label}: no source URL (a search summary is not a source; open the page) "
+                          f"and no first-hand statement {{who, date, channel, quote}}")
+        if b.get("unit") == ANY and b.get("class") == "time_fx":
+            errors.append(f"{label}: time_fx cannot be 'any' — name the delay/reverb unit")
         if b.get("era") != "record":
             errors.append(f"{label}: era {b.get('era')!r} — only the rig of the recording counts")
     return errors

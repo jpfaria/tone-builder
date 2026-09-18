@@ -9,6 +9,7 @@ ranking put a ZVEX Fuzz Factory (6.7 dB, no source) ahead of the Tube Screamer
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,9 @@ from tone_builder.render import Renderer, RenderError, measure
 from tone_builder.research import CLASSES, sourced_units
 
 __all__ = ["CLASSES", "Candidate", "run_battery"]
+
+# A software renderer can run several renders at once (a unit like "Fender" opens ~300 captures);
+# a pedal on one USB cable cannot. The device says which: `device.jobs`, default 1.
 
 
 @dataclass
@@ -31,7 +35,7 @@ class Candidate:
 
 def run_battery(baseline: Renderer, candidates: list[Candidate], assignments: list[dict],
                 research: dict, workdir: Path,
-                derived_units: dict[str, set[str]] | None = None) -> tuple[dict[str, dict], dict]:
+                derived_units: dict[str, set[str]] | None = None, jobs: int = 1) -> tuple[dict[str, dict], dict]:
     """Returns (result per class, baseline measurement)."""
     base = measure(baseline, assignments, workdir / "baseline")
     fit, test = retention.split(len(assignments))
@@ -58,12 +62,19 @@ def run_battery(baseline: Renderer, candidates: list[Candidate], assignments: li
                 out[klass] = entry
                 continue
             pool = kept
-        results = {}
-        for c in pool:
+        def one(c: Candidate):
             try:
-                results[c.name] = measure(c.render, assignments, workdir / klass / c.name)
+                return c.name, measure(c.render, assignments, workdir / klass / c.name), None
             except RenderError as e:
-                entry["errors"].append(f"{c.name}: {e}")
+                return c.name, None, f"{c.name}: {e}"
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:   # renders are subprocesses: threads are enough
+            for name, res, err in ex.map(one, pool):          # map keeps the candidates' order
+                if err:
+                    entry["errors"].append(err)
+                else:
+                    results[name] = res
         if results:
             entry["status"] = "measured"
             entry["measured"] = {k: v["deviation"] for k, v in results.items()}

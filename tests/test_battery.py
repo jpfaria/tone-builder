@@ -67,3 +67,29 @@ def test_derived_unit_is_choosable_without_a_fake_source(tmp_path):
     assert r["stacked_drives"]["sourced"]["best"] == "pair"
     assert r["stacked_drives"]["derived_from_sources"] is True
     assert all("derived" not in s for b in RESEARCH["blocks"] for s in b["sources"])
+
+
+def test_candidates_are_measured_in_parallel_and_give_the_same_numbers(tmp_path):
+    """Hundreds of captures per unit: one render at a time turns a build into hours."""
+    import threading
+    import time
+    a = _setup(tmp_path)
+    live, peak, lock = [0], [0], threading.Lock()
+
+    def slow(gains):
+        inner = _tilt(gains)
+        def render(src, dst):
+            with lock:
+                live[0] += 1
+                peak[0] = max(peak[0], live[0])
+            time.sleep(0.02)
+            inner(src, dst)
+            with lock:
+                live[0] -= 1
+        return render
+
+    cands = [Candidate(f"ts{i}", "single_drive", "TS", slow([0, i, -i, i, -i, i, -i, i])) for i in range(6)]
+    r, _ = run_battery(_tilt([0] * 8), cands, a, RESEARCH, tmp_path / "w", jobs=4)
+    assert peak[0] > 1
+    assert r["single_drive"]["sourced"]["best"] == "ts3"            # TARGET_GAINS is +-3
+    assert list(r["single_drive"]["measured"]) == [c.name for c in cands]   # order kept

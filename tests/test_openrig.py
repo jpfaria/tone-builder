@@ -75,3 +75,16 @@ def test_eq_uses_the_plugin(tmp_path):
     b = dev.eq_blocks({250.0: 1.5, 2000.0: -2.0})[0]
     assert b["model"] == "lv2_x42_fil4"
     assert b["params"] == {"freq1": 250.0, "gain1": 1.5, "q1": 0.7, "freq2": 2000.0, "gain2": -2.0, "q2": 0.7}
+
+
+def test_an_open_class_resolves_to_every_model_of_that_class(tmp_path):
+    dev = OpenRigDevice(_plugins(tmp_path), tmp_path / "w")
+    opts, unresolved = dev.resolve({"blocks": [{"class": "single_drive", "unit": "any"}]})
+    assert unresolved == [] and {o.unit for o in opts["single_drive"]} == {"any"}
+    assert len(opts["single_drive"]) == 2
+
+
+def test_params_set_by_ear_override_the_model_defaults(tmp_path):
+    dev = OpenRigDevice(_plugins(tmp_path), tmp_path / "w")
+    opts, _ = dev.resolve({"blocks": [{"class": "cab", "unit": "Vox AC30 Bright", "params": {"preset": "beta91", "mix": 24.0}}]})
+    assert [o.blocks[0]["params"] for o in opts["cab"]] == [{"preset": "beta91", "mix": 24.0}]
