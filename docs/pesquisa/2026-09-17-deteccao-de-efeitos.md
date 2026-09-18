@@ -16,6 +16,28 @@ numa chain do OpenRig. Código da prova: `~/.tone-builder/quem-e-esse-samuel-lim
 | Caso real | 728,2 ms em 15 de 44 janelas do stem da guitarra (colcheia pontuada a ~62 bpm). 483,8 e 967,8 ms caem de 17 para 9 e 8 janelas ao passar da mix para o stem: parecem ser do acompanhamento programado, não da guitarra |
 | Ouvido × matemática | a chain aprovada de ouvido usava 726 ms; a medição deu 728 ms |
 
+## Correção de 18/09/2026 — persistência sozinha não prova delay
+
+Ao levar o detector para o tone-analyzer (`tone-analyzer delay`), a verdade conhecida mostrou o que
+a prova de 17/09 não tinha: **uma grade rítmica também persiste**. Ataques sem relação entre si, no
+mesmo espaçamento, votam no mesmo atraso em quase toda janela. O que separa eco de ritmo é a
+**dispersão** do atraso entre janelas:
+
+| caso | janelas que votam | dispersão do atraso |
+|---|---|---|
+| delay digital estático (375 e 563 ms, mix 6 a 25 %) | 5 de 5 | 0,00 a 0,05 ms |
+| frase seca numa grade de 0,5 s | 4 a 5 de 5 | 0,5 a 2 ms |
+| delay de fita com oscilação de 2 ms | 5 de 5 | 1,4 ms — igual ao ritmo |
+
+Consequência para o caso real: os 727 ms do cover têm dispersão de 1,6 ms, e 727 ms são exatamente
+3 semicolcheias a 62 bpm. **A medição não prova o delay do Samuel Lima**; ela só descarta um delay
+digital estático. A linha "728,2 ms em 15 de 44 janelas" da tabela acima estava interpretada com
+confiança demais. O delay da chain vem do ouvido do jpfaria e da declaração do guitarrista.
+
+Também testado em 18/09 e insuficiente: ler o nível do eco nota a nota, nas faixas de frequência da
+própria nota, em +atraso. Com reverb por cima, mix de 0, 10 e 24 % leem igual (0,07 a 0,08); só 40 %
+se destaca (0,36). Serve para dizer "tem muito delay", não para acertar a quantidade.
+
 ## O que NÃO funcionou
 
 - Reverb por queda livre depois de corte de nota: acerta 1,0 s e 2,5 s quando acha cortes, mas confunde as repetições do delay com cauda e não acha cortes em execução real.
@@ -44,6 +66,7 @@ candidatos do catálogo nas classes detectadas e escolher por medição: tone-bu
 
 ## Próximos passos
 
-1. Levar `delay_cepstrum3` + `delay_persistent` para o tone-analyzer, com a prova de verdade conhecida como teste.
+1. ~~Levar o detector para o tone-analyzer~~ feito em 18/09: `tone-analyzer delay` (0.4.0), com persistência e dispersão.
 2. Quantidade do delay (mix, feedback) e reverb: medir por comparação render × disco na cauda das notas, porque o tone-builder tem a DI da mesma nota.
-3. Ganho e captador: idem, por harmônicos da nota contra a biblioteca.
+3. Ganho: `tone-builder linearity` (18/09) mede a limpeza de cada captura sem gravação nenhuma — a mesma nota em dois níveis de entrada, 20 dB um do outro. No AC15 a ordem medida é a dos rótulos das capturas: crystal clean 0,9 dB, edge of breakup 1,9, crunch 7, overdriven 15 a 17. Falta o outro lado: ler o grau de distorção da GRAVAÇÃO.
+4. Captador: a biblioteca só tem a posição 5 (braço). Inferir a posição usada num disco exige as outras posições gravadas.
