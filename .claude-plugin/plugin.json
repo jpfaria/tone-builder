@@ -5,5 +5,9 @@
   "author": {
     "name": "João Paulo"
   },
-  "homepage": "https://github.com/jpfaria/tone-builder"
+  "homepage": "https://github.com/jpfaria/tone-builder",
+  "dependencies": [
+    "mvave",
+    "ampero2"
+  ]
 }

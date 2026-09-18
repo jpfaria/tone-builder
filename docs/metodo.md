@@ -103,3 +103,4 @@ Uma classe sem candidato precisa de motivo (normalmente o `not_found` da pesquis
 | Afirmar equipamento de memória ou por resumo de busca | resumo juntou duas páginas e inventou um delay no disco |
 | Confiar num número de validação medido com uma guitarra só | o 1,84 dB virou 1,5–3,7 dB com 4 guitarras |
 | Ler áudio sem reamostrar para 48 kHz | Demucs escreve 44,1 kHz; tudo desloca +1,5 semitom |
+| Mudar amp, compressor e EQ no mesmo passo num ajuste de ouvido | 17/09: estado "próximo" virou "completamente diferente" sem dar para saber o que piorou |

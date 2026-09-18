@@ -10,5 +10,9 @@
       "source": "./",
       "description": "Recreates the tone of a recording by measurement and builds it on OpenRig, Ampero II and MK-300."
     }
+  ],
+  "allowCrossMarketplaceDependenciesOn": [
+    "mvave",
+    "hotone-ampero-2"
   ]
 }

@@ -88,3 +88,19 @@ def test_ampero_sets_usb_input_for_reamp_and_restores_it_in_the_preset(tmp_path)
     preset = dev.preset(blocks, "x")
     assert preset["commands"][-1] == ["input-source", "input"]
     assert ["input-source", "usb34"] not in preset["commands"]
+
+
+def test_runner_prefers_the_cli_installed_beside_the_interpreter(tmp_path, monkeypatch):
+    """mvave/ampero2 are dependencies: they live in this venv, which need not be on PATH."""
+    import sys
+
+    from tone_builder.devices.pedal import resolve_exe
+
+    fake_python = tmp_path / "bin" / "python"
+    fake_python.parent.mkdir()
+    fake_python.write_text("")
+    (tmp_path / "bin" / "mvave").write_text("")
+    monkeypatch.setattr(sys, "executable", str(fake_python))
+    assert resolve_exe("mvave") == [str(tmp_path / "bin" / "mvave")]
+    assert resolve_exe("ampero2") == ["ampero2"]                  # not in the venv: PATH decides
+    assert resolve_exe("python -m mvave") == ["python", "-m", "mvave"]

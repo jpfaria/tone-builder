@@ -15,7 +15,11 @@ dependencies = [
   "soundfile==0.12.1",
   "sounddevice==0.5.6",
   "PyYAML>=6.0",
-  "tone-analyzer @ git+https://github.com/jpfaria/tone-analyzer@v0.2.1",
+  # jpfaria's own libs are never pinned (18/09): they all name each other by the SAME bare URL,
+  # because pip refuses two different URLs for one package.
+  "tone-analyzer @ git+https://github.com/jpfaria/tone-analyzer",
+  "mvave[reamp] @ git+https://github.com/jpfaria/mvave",
+  "ampero2[reamp] @ git+https://github.com/jpfaria/hotone-ampero-2",
 ]
 
 [project.optional-dependencies]

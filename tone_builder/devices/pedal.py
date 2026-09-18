@@ -18,6 +18,7 @@ import json
 import re
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -28,12 +29,22 @@ GAIN_SWEEP = (0.2, 0.4, 0.6, 0.8)          # fraction of the gain knob range
 GAIN_NAMES = ("gain", "drive", "sustain", "fuzz")
 
 
+def resolve_exe(exe: str) -> list[str]:
+    """The device CLIs are dependencies of this package: prefer the one installed beside the
+    interpreter (the venv's bin need not be on PATH); otherwise let PATH decide."""
+    parts = shlex.split(exe)
+    beside = Path(sys.executable).parent / parts[0]
+    if len(parts) == 1 and beside.is_file():
+        return [str(beside)]
+    return parts
+
+
 class Runner:
     def __init__(self, exe: str):
         self.exe = exe
 
     def __call__(self, args: list[str]) -> tuple[int, str]:
-        p = subprocess.run([*shlex.split(self.exe), *args], capture_output=True, text=True)
+        p = subprocess.run([*resolve_exe(self.exe), *args], capture_output=True, text=True)
         return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
