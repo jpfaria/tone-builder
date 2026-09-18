@@ -54,3 +54,9 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
   idênticas sem modulação, até 0,5 dB com Univibe; por isso o `verify` renderiza 3 vezes e usa 3σ.
   Uma chamada `mvave` travou 1h40 em `rtmidi close_port` com o comando já enviado: o `Runner`
   mata e repete toda chamada de aparelho que passa de 120 s.
+
+## 2026-09-18 — A long OpenRig build dies when the app is reinstalled under it: render from a snapshot
+
+- **Gotcha / invariant:** `openrig-render` and the plugin catalog live inside `/Applications/OpenRig.app`. While OpenRig itself is being developed the app is reinstalled several times a day; each reinstall removes the binary (17:47: `FileNotFoundError`) or its `libnam_wrapper.dylib` (19:37: `dyld: library not loaded`) for a few seconds and a 2-hour build exits.
+- **Why it matters:** two builds lost on 18/09. Measurements are now cached per candidate (`measure.json`), so a rerun in the same `--out` resumes; and the renderer waits up to 2 minutes for a missing binary. Neither helps against a half-copied app.
+- **Applies to:** any OpenRig build longer than a few minutes → `cp -R /Applications/OpenRig.app ~/.tone-builder/_runtime/` and run with `OPENRIG_RENDER=~/.tone-builder/_runtime/OpenRig.app/Contents/MacOS/openrig-render --plugins-root ~/.tone-builder/_runtime/OpenRig.app/Contents/Resources/plugins`. Also detach it (`nohup … & disown`): a background task dies with the Claude session.
