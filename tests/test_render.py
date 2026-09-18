@@ -25,3 +25,17 @@ def test_measure_keeps_assignment_order(tmp_path):
     r = measure(copy_render, [{"note": t, "di": good}, {"note": t, "di": bad}], tmp_path / "w")
     assert r["per_note"][0] < 0.5 < 5.0 < r["per_note"][1]
     assert r["deviation"] == pytest.approx(sum(r["per_note"]) / 2)
+
+
+def test_a_measured_render_is_not_kept_on_disk(tmp_path, monkeypatch):
+    """A unit like "Fender" is ~300 captures x dozens of notes: kept renders fill the disk."""
+    from tests.synth import note, write
+    from tone_builder.render import render_note
+
+    di = write(tmp_path / "c1-62-D4.wav", note(62))
+    copy = lambda src, dst: write(dst, note(62))
+    assert render_note(copy, di, tmp_path / "w", "a").size > 0
+    assert not (tmp_path / "w" / "a.wav").exists()
+    monkeypatch.setenv("TONE_BUILDER_KEEP_RENDERS", "1")
+    render_note(copy, di, tmp_path / "w", "b")
+    assert (tmp_path / "w" / "b.wav").exists()

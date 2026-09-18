@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Callable
 
@@ -26,6 +27,8 @@ def render_note(render: Renderer, di: Path, workdir: Path, tag: str) -> np.ndarr
     if not wet.exists():
         raise RenderError(f"render wrote nothing: {wet}")
     x = load_mono(wet)
+    if not os.environ.get("TONE_BUILDER_KEEP_RENDERS"):
+        wet.unlink()          # measured and done: tens of thousands of kept renders fill a disk
     if len(x) == 0 or np.abs(x).max() < SILENCE:
         raise RenderError(f"render is silent: {wet}")
     return x
