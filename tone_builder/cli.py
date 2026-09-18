@@ -22,6 +22,20 @@ def _root(a) -> Path:
     return Path(a.root) if a.root else library.library_dir()
 
 
+def parse_time(s: str) -> float:
+    """M:SS or seconds."""
+    if ":" in s:
+        m, sec = s.split(":", 1)
+        return int(m) * 60 + float(sec)
+    return float(s)
+
+
+def _window(a):
+    lo = parse_time(a.t_from) if a.t_from else None
+    hi = parse_time(a.t_to) if a.t_to else None
+    return None if lo is None and hi is None else (lo, hi)
+
+
 def _list(a) -> int:
     root = _root(a)
     for g in library.list_guitars(root):
@@ -66,7 +80,7 @@ def _record(a) -> int:
 def _target(a) -> int:
     import json
     by_midi = library_by_midi(_root(a), a.guitar, a.position)
-    t = build_target(load_mono(Path(a.disc)), load_mono(Path(a.lead)), set(by_midi))
+    t = build_target(load_mono(Path(a.disc)), load_mono(Path(a.lead)), set(by_midi), window=_window(a))
     Path(a.out).write_text(json.dumps(t, indent=1))
     for n in t:
         m, sec = divmod(n["start_s"], 60)
@@ -112,7 +126,7 @@ def _build(a) -> int:
     try:
         res = build_tone(load_mono(disc_path), load_mono(lead_path),
                          library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
-                         device, out / "work", a.name)
+                         device, out / "work", a.name, window=_window(a))
     except Unresolved as e:
         print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
         return 3
@@ -224,6 +238,8 @@ def main(argv: list[str] | None = None) -> int:
     tp.add_argument("--position", required=True)
     tp.add_argument("--out", required=True)
     tp.add_argument("--root")
+    tp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
+    tp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
     vp = sub.add_parser("validate", help="known-truth check of the target reading")
     vp.add_argument("--guitar", default="prs-silver-sky-se")
     vp.add_argument("--position", default="pos5")
@@ -245,6 +261,8 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--plugins-root")
     bp.add_argument("--work-patch")
     bp.add_argument("--root")
+    bp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
+    bp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
     np_ = sub.add_parser("linearity", help="rank a unit's captures by how clean they are (no recording needed)")
     np_.add_argument("--device", required=True)
     np_.add_argument("--class", dest="klass", default="amp")

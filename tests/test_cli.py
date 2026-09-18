@@ -75,6 +75,11 @@ def test_build_on_ampero_needs_the_work_patch(tmp_path, capsys):
     assert "--work-patch" in capsys.readouterr().err
 
 
+def test_parse_time():
+    assert cli.parse_time("2:50") == 170.0
+    assert cli.parse_time("95.5") == 95.5
+
+
 def test_build_asks_tone_analyzer_for_a_song_that_is_not_in_its_library(tmp_path, capsys, monkeypatch):
     from tests.synth import note, write
     from tone_builder import song_audio

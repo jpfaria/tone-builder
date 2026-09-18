@@ -25,11 +25,25 @@ def midi_hz(midi: int) -> float:
     return 440.0 * 2.0 ** ((midi - 69) / 12.0)
 
 
-def build_target(disc: np.ndarray, lead: np.ndarray, available_midis: set[int]) -> list[dict]:
+Window = tuple[float | None, float | None]
+
+
+def in_window(start_s: float, window: Window | None) -> bool:
+    """[from, to): an attack exactly at `to` belongs to the next part."""
+    if window is None:
+        return True
+    lo, hi = window
+    return (lo is None or start_s >= lo) and (hi is None or start_s < hi)
+
+
+def build_target(disc: np.ndarray, lead: np.ndarray, available_midis: set[int],
+                  window: Window | None = None, stats: dict | None = None) -> list[dict]:
     """Both signals mono at 48 kHz and aligned."""
     out = []
     span = int(DUR_S * SR)
     for n in detect_notes(lead, SR, dur_s=DUR_S):
+        if not in_window(n["start_s"], window):
+            continue
         if n["midi"] not in available_midis:
             continue
         start = int(round(n["start_s"] * SR))

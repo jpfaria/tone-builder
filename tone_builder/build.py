@@ -66,7 +66,7 @@ def eq_gains(points: list[list[tuple[float, float]]], notes: list[int]) -> dict[
 
 
 def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict, device,
-               workdir: Path, name: str) -> dict:
+               workdir: Path, name: str, window=None) -> dict:
     errors = validate(research)
     if errors:
         raise ValueError("research is invalid:\n  " + "\n  ".join(errors))
@@ -75,7 +75,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
         raise Unresolved(unresolved)
     if not options.get("amp"):
         raise ValueError("the research names no amp with a model in the device catalog")
-    target = build_target(disc, lead, set(by_midi))
+    target = build_target(disc, lead, set(by_midi), window=window)
     if not target:
         raise ValueError("no target note: nothing on the separated track matches the library with enough harmonics")
 
