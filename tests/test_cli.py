@@ -34,8 +34,33 @@ def test_check_flags_bad_note(tmp_path: Path, capsys):
     assert library.read_yaml(root / "g" / "pos5" / "medicao.yaml")["c1-64-E4"]["accepted"] is True
 
 
+def test_check_covers_chords(tmp_path: Path, capsys):
+    from tests.synth import SR as SYNTH_SR
+    from tests.synth import note as snote
+
+    root = _lib(tmp_path)
+    (root / "g" / "pos5" / library.CHORDS_DIR).mkdir()
+    good = sum(snote(m, seconds=1.0, start_s=0.3) for m in (40, 47, 56))
+    sf.write(root / "g" / "pos5" / library.CHORDS_DIR / library.chord_filename(
+        [(6, 40), (5, 47), (3, 56)], 1), good, SYNTH_SR, subtype="FLOAT")
+    bad = snote(41, seconds=1.0, start_s=0.3)
+    sf.write(root / "g" / "pos5" / library.CHORDS_DIR / library.chord_filename(
+        [(6, 41), (5, 48), (3, 57)], 1), bad, SYNTH_SR, subtype="FLOAT")
+    rc = cli.main(["library", "check", "g", "pos5", "--root", str(root)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "ok       acordes/c6-40_c5-47_c3-56-t1" in out
+    assert "REJECTED acordes/c6-41_c5-48_c3-57-t1" in out
+
+
 def test_record_requires_device_and_channel(tmp_path: Path, capsys):
     assert cli.main(["library", "record", "g", "pos5", "1", "--root", str(tmp_path)]) == 2
+    assert "--device" in capsys.readouterr().err
+
+
+def test_record_chord_requires_device_and_channel(tmp_path: Path, capsys):
+    assert cli.main(["library", "record-chord", "g", "pos5", "c6-40_c5-47",
+                      "--root", str(tmp_path)]) == 2
     assert "--device" in capsys.readouterr().err
 
 

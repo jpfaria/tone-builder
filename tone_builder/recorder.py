@@ -11,10 +11,14 @@ from tone_analyzer.take import take_metrics
 
 from tone_builder import library
 from tone_builder.acceptance import judge_take
+from tone_builder.chords import reduce_octaves
 
 SR = 48000
 PREROLL_S = 0.02
 BEEP_S = 0.15
+CHORD_TAKE_S = 2.0
+CHORD_PREROLL_S = 0.05   # a chord's own onset detector needs >2 blocks (~43ms) of true silence before the attack
+CHORD_MIN_SEP_S = 1.0    # a note ending abruptly mid-chord can look like a second attack; keep only real strums
 _METRIC_KEYS = ("midi", "duration_s", "saturated_samples", "snr_db", "peak_db")
 
 
@@ -76,3 +80,25 @@ def save_string(root: Path, guitar: str, position: str, string: int, signal: np.
             report["rejected"][midi] = entry["reasons"]
     library.write_yaml(med_path, med)
     return report
+
+
+def save_chord(root: Path, guitar: str, position: str, voicing: list[tuple[int, int]],
+               signal: np.ndarray, sr: int, takes: int = 3) -> dict:
+    """Up to `takes` strums; a take is kept only when the chord detector hears exactly its notes."""
+    from tone_analyzer.chords import detect_chords
+    from tone_analyzer.notes import note_onsets
+    want = reduce_octaves([m for _, m in voicing])
+    out_dir = root / guitar / position / library.CHORDS_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rep: dict = {"accepted": [], "rejected": {}}
+    for i, a in enumerate(note_onsets(signal, sr, min_sep_s=CHORD_MIN_SEP_S)[:takes], 1):
+        start = max(0, a - int(CHORD_PREROLL_S * sr))
+        piece = signal[start:start + int(CHORD_TAKE_S * sr)]
+        heard = detect_chords(piece, sr)
+        got = tuple(heard[0]["midis"]) if heard else ()
+        if got != want:
+            rep["rejected"][i] = f"heard {list(got)}, expected {list(want)}"
+            continue
+        sf.write(out_dir / library.chord_filename(voicing, i), piece, sr, subtype="FLOAT")
+        rep["accepted"].append(i)
+    return rep

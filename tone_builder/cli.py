@@ -46,6 +46,8 @@ def _list(a) -> int:
 
 
 def _check(a) -> int:
+    from tone_analyzer.chords import detect_chords
+    from tone_builder.chords import reduce_octaves
     root = _root(a)
     med_path = root / a.guitar / a.position / "medicao.yaml"
     med = library.read_yaml(med_path) if med_path.exists() else {}
@@ -62,6 +64,20 @@ def _check(a) -> int:
         else:
             bad += 1
             print(f"REJECTED {path.stem}: {', '.join(entry['reasons'])}")
+    for path in library.list_chords(root, a.guitar, a.position):
+        voicing = library.parse_chord_filename(path.name)
+        want = reduce_octaves([m for _, m in voicing])
+        x, sr = sf.read(path, dtype="float32", always_2d=False)
+        if x.ndim == 2:
+            x = x.T
+        heard = detect_chords(x, sr)
+        got = tuple(heard[0]["midis"]) if heard else ()
+        stem = f"{library.CHORDS_DIR}/{path.stem}"
+        if got == want:
+            print(f"ok       {stem}")
+        else:
+            bad += 1
+            print(f"REJECTED {stem}: heard {list(got)}")
     library.write_yaml(med_path, med)
     return 1 if bad else 0
 
@@ -76,6 +92,18 @@ def _record(a) -> int:
     print(f"rejected: {rep['rejected']}")
     print(f"missing:  {rep['missing']}")
     return 0 if not rep["rejected"] and not rep["missing"] else 1
+
+
+def _record_chord(a) -> int:
+    if a.device is None or a.channel is None:
+        print("record-chord: pass --device and --channel — where to listen is never assumed",
+              file=sys.stderr)
+        return 2
+    x = recorder.record(a.seconds, a.device, a.channel)
+    rep = recorder.save_chord(_root(a), a.guitar, a.position, library.parse_voicing(a.voicing), x, recorder.SR)
+    print(f"accepted: {rep['accepted']}")
+    print(f"rejected: {rep['rejected']}")
+    return 0 if not rep["rejected"] else 1
 
 
 def _target(a) -> int:
@@ -239,6 +267,14 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--channel", type=int)
     rp.add_argument("--seconds", type=float, default=45.0)
     rp.add_argument("--root")
+    rcp = lib.add_parser("record-chord")
+    rcp.add_argument("guitar")
+    rcp.add_argument("position")
+    rcp.add_argument("voicing")
+    rcp.add_argument("--device")
+    rcp.add_argument("--channel", type=int)
+    rcp.add_argument("--seconds", type=float, default=12.0)
+    rcp.add_argument("--root")
     tp = sub.add_parser("target", help="target notes: located on the separated track, level read on the record")
     tp.add_argument("disc")
     tp.add_argument("lead")
@@ -300,7 +336,8 @@ def main(argv: list[str] | None = None) -> int:
         return _target(a)
     if a.group == "validate":
         return _validate(a)
-    return {"list": _list, "check": _check, "record": _record}[a.cmd](a)
+    return {"list": _list, "check": _check, "record": _record,
+             "record-chord": _record_chord}[a.cmd](a)
 
 
 if __name__ == "__main__":

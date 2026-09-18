@@ -45,6 +45,21 @@ def test_cut_notes_finds_expected():
     assert all(len(c) >= int(0.67 * sr) for c in cuts.values())
 
 
+def test_save_chord_keeps_takes_with_the_right_notes(tmp_path: Path):
+    from tests.synth import SR as SYNTH_SR
+    from tests.synth import note as snote
+
+    def chord(midis: list[int]) -> np.ndarray:
+        return sum(snote(m, seconds=1.0, start_s=0.3) for m in midis)
+
+    sig = np.concatenate([chord([40, 47, 56]), chord([40, 47, 56]), chord([41, 48, 57])])
+    voicing = [(6, 40), (5, 47), (3, 56)]
+    rep = recorder.save_chord(tmp_path, "g", "pos5", voicing, sig, SYNTH_SR)
+    assert rep["accepted"] == [1, 2]
+    assert 3 in rep["rejected"]
+    assert len(library.list_chords(tmp_path, "g", "pos5")) == 2
+
+
 def test_save_string_accepts_good_rejects_clipped(tmp_path: Path):
     sr = 48000
     (tmp_path / "g").mkdir()
