@@ -40,12 +40,21 @@ def resolve_exe(exe: str) -> list[str]:
 
 
 class Runner:
-    def __init__(self, exe: str):
-        self.exe = exe
+    """A device call that hangs is killed and retried: `mvave enable EQ on` once hung
+    1h40 in rtmidi close_port (MK-300, 18/09/2026) with the command already sent."""
+
+    def __init__(self, exe: str, timeout_s: float = 120, attempts: int = 3):
+        self.exe, self.timeout_s, self.attempts = exe, timeout_s, attempts
 
     def __call__(self, args: list[str]) -> tuple[int, str]:
-        p = subprocess.run([*resolve_exe(self.exe), *args], capture_output=True, text=True)
-        return p.returncode, (p.stdout or "") + (p.stderr or "")
+        for _ in range(self.attempts):
+            try:
+                p = subprocess.run([*resolve_exe(self.exe), *args], capture_output=True, text=True,
+                                   timeout=self.timeout_s)
+            except subprocess.TimeoutExpired:
+                continue
+            return p.returncode, (p.stdout or "") + (p.stderr or "")
+        return 124, f"{self.exe} {' '.join(args)}: timed out {self.attempts}x after {self.timeout_s} s"
 
 
 def _eq_knob(freqs: dict[str, float], hz: float) -> str:

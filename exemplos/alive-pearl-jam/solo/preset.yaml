@@ -1,0 +1,46 @@
+device: mvave
+name: DIG - Pearl Jam - Alive (solo)
+blocks:
+- category: AMP
+  model: 21J800_CL_196
+  knobs: {}
+- category: MOD
+  model: Univibe
+  knobs: {}
+commands:
+- - enable
+  - WAH
+  - 'off'
+- - enable
+  - FX
+  - 'off'
+- - enable
+  - GATE
+  - 'off'
+- - enable
+  - DS
+  - 'off'
+- - model
+  - AMP
+  - 21J800_CL_196
+- - enable
+  - AMP
+  - 'on'
+- - enable
+  - CAB
+  - 'off'
+- - enable
+  - EQ
+  - 'off'
+- - model
+  - MOD
+  - Univibe
+- - enable
+  - MOD
+  - 'on'
+- - enable
+  - DLY
+  - 'off'
+- - enable
+  - REV
+  - 'off'

@@ -1,0 +1,76 @@
+# Step 0 for "Alive" (Pearl Jam, Ten, 1991). Every quote was read on the opened page on 18/09/2026; search summaries were not used.
+#
+# Take provenance: the album "Alive" is NOT from the Ten sessions (London Bridge, March 1991) nor from a 1990
+# Mother Love Bone demo. It is the Mookie Blaylock demo session at London Bridge, January 1991, carried over to Ten.
+#   https://en.wikipedia.org/wiki/Ten_(Pearl_Jam_album): "A few tracks were previously recorded at London Bridge in January, but only 'Alive' was carried over from that session."
+#   https://en.wikipedia.org/wiki/Alive_(Pearl_Jam_song): "The band, then called Mookie Blaylock, recorded "Alive" during a demo session at London Bridge studio in January 1991. The version recorded during this session would later appear on the group's debut album, _Ten_"
+# The OUTRO SOLO, however, was (re)cut during mixing at Ridge Farm Studio (Surrey, England), June 1991, in one take:
+#   https://en.wikipedia.org/wiki/Alive_(Pearl_Jam_song): "During album mixing sessions in England in June 1991, mixer Tim Palmer had McCready add to the song's outro solo."
+#   https://www.soundradix.com/articles/tim-palmer/ (Palmer): "So Mike played a fourth take and nailed it—that's the solo you hear on the album."
+# So "record era" for the solo = Ridge Farm, June 1991 (gear sources below do not say whether the amp was shipped to England or rented there).
+#
+# Guitar: CONFLICT between sources.
+#   Solo-specific: 1962 Japanese Reissue Stratocaster — https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive
+#     "which McCready cut with a 1962 Japanese Reissue Stratocaster, a Tubescreamer, and a Marshall JCM800."
+#   Also https://guitargangsters.net/mike-mccready-guitars-gear/ : "The first album, Ten (1991), was recorded with the 1962 Reissue Strat that Gossard and Ament had bought him."
+#   Generic Ten-era (not solo-specific): '59 Sunburst Strat — https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+#     "Mike McCready usou principalmente modelos Stratocaster, destacando-se a Sunburst de '59"
+#   Preferred for the solo: '62 Japanese reissue Strat (solo-specific, McCready podcast page).
+song: Alive
+artist: Pearl Jam
+part: solo
+blocks:
+  - class: amp
+    unit: Marshall JCM800
+    era: record
+    sources:
+      - https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive
+      - https://en.wikipedia.org/wiki/Ten_(Pearl_Jam_album)
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "That spirit drives the soaring solo on \"Alive,\" which McCready cut with a 1962 Japanese Reissue Stratocaster, a Tubescreamer, and a Marshall JCM800."
+    # corroborating (Ten-era, not solo-specific): Wikipedia Ten: "Both guitarists used Marshall JCM800s for dirty tones and Fenders for clean parts."
+    # artesonora: "ambos usavam Marshall JCM800 e JMP, os modelos 2204" (2204 = 50W; model 2203/2204 not confirmed for the solo)
+  - class: single_drive
+    unit: Ibanez TS-9   # Tube Screamer; TS-9 per Ten-era gear article
+    era: record
+    sources:
+      - https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "which McCready cut with a 1962 Japanese Reissue Stratocaster, a Tubescreamer, and a Marshall JCM800."
+    # artesonora (Ten era, generic): "Para distorção, Mike McCready usava uma unidade SansAmp e um Ibanez TS-9 Tube Screamer"
+  - class: time_fx
+    unit: Uni-Vibe   # modulation; no mod class, filed under time_fx
+    era: record
+    sources:
+      - https://en.wikipedia.org/wiki/Alive_(Pearl_Jam_song)
+      - https://guitargangsters.net/mike-mccready-guitars-gear/
+    quote: "The guitarist was unsatisfied with the result, so he made another attempt at the solo, this time using a \"Uni-Vibe while recording.\""
+    # Unit ambiguity: artesonora (Ten era) says "Muito usado foi um Dunlop Rotovibe" — could be the Rotovibe rather than an original Shin-ei Uni-Vibe.
+not_found:
+  - class: stacked_drives
+    searched:
+      - https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive   # only one drive (Tubescreamer) named for the solo
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # SansAmp + TS-9 listed for Ten generally, no source says they were stacked on Alive
+  - class: boost
+    searched:
+      - https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive   # no boost beyond the Tubescreamer
+      - https://guitarfxdepot.com/rigs/mike-mccready-pearl-jam-guitar-rig/   # Ten-era pedal list has no boost
+  - class: compressor
+    searched:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # no compressor in Ten-era list
+      - https://tapeop.com/interviews/99/tim-palmer   # Palmer mix interview, no guitar compression detail
+      - https://www.soundradix.com/articles/tim-palmer/   # solo story only, no processing detail
+  - class: cab
+    searched:
+      - https://www.premierguitar.com/podcast/shred-with-shifty/pearl-jams-mike-mccready-comes-alive   # head named, no cab
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # only Bassman 4x10 combo (clean amp), no Marshall cab
+      - https://guitarfxdepot.com/rigs/mike-mccready-pearl-jam-guitar-rig/   # "Marshall heads", cab unspecified
+  - class: eq
+    searched:
+      - https://tapeop.com/interviews/99/tim-palmer   # Neve console mentioned, no guitar EQ detail
+      - https://www.musicradar.com/news/guitars/production-legend-tim-palmer-on-14-career-defining-records-578398   # no EQ detail
+      - https://guitarfxdepot.com/rigs/mike-mccready-pearl-jam-guitar-rig/   # no EQ pedal in Ten era
+  # time_fx partial: no reverb/delay/wah specific to the Alive solo found.
+  #   Palmer's general mix approach (tapeop): "big reverbs on the drums, delays, and backwards reverbs" — not guitar-solo specific.
+  #   Wah: artesonora lists "um modelo normal Dunlop Crybaby" for Ten generally; no source ties it to the Alive solo.
+  #   Boss DM-3 analog delay + Uni-Vibe chain on guitarfxdepot is from a 1995 Guitar World interview (Vitalogy era) — NOT record era.

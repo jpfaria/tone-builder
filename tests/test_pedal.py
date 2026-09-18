@@ -104,3 +104,23 @@ def test_runner_prefers_the_cli_installed_beside_the_interpreter(tmp_path, monke
     assert resolve_exe("mvave") == [str(tmp_path / "bin" / "mvave")]
     assert resolve_exe("ampero2") == ["ampero2"]                  # not in the venv: PATH decides
     assert resolve_exe("python -m mvave") == ["python", "-m", "mvave"]
+
+
+def test_runner_retries_a_device_call_that_hangs(tmp_path):
+    # MK-300, 18/09/2026: `mvave enable EQ on` hung 1h40 in rtmidi close_port and froze the build.
+    from tone_builder.devices.pedal import Runner
+    flag = tmp_path / "hung-once"
+    exe = tmp_path / "dev"
+    exe.write_text(f"#!/bin/sh\nif [ ! -e {flag} ]; then touch {flag}; sleep 30; fi\necho ok $@\n")
+    exe.chmod(0o755)
+    code, out = Runner(str(exe), timeout_s=1)(["enable", "EQ", "on"])
+    assert code == 0 and "ok enable EQ on" in out
+
+
+def test_runner_gives_up_on_a_device_that_always_hangs(tmp_path):
+    from tone_builder.devices.pedal import Runner
+    exe = tmp_path / "dev"
+    exe.write_text("#!/bin/sh\nsleep 30\n")
+    exe.chmod(0o755)
+    code, out = Runner(str(exe), timeout_s=0.5, attempts=2)(["show"])
+    assert code != 0 and "timed out" in out

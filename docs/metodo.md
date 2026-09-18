@@ -26,6 +26,10 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
 9. **Relatório**: "pronto" só com número ou motivo em toda classe e margem aprovada; senão
    "parcial" — `tone_builder/report.py`.
 
+10. **Conferência no aparelho** — `tone_builder/verify.py`. O preset salvo é renderizado 3 vezes;
+    tolerância = 3σ da repetição (mínimo 0,1 dB). A MK-300 não repete a mesma nota igual: 0,2 dB
+    entre re-amps idênticos sem modulação, até 0,5 dB com Univibe (*Alive*, 18/09/2026).
+
 Sempre que mexer no detector de pitch, no portão de destaque ou na janela: `tone-builder validate`.
 
 ## O validador (verdade conhecida)
