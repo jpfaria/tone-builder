@@ -3,6 +3,7 @@
 biblioteca/<guitar>/guitarra.yaml
 biblioteca/<guitar>/<position>/c<string>-<midi>-<note>.wav
 biblioteca/<guitar>/<position>/medicao.yaml
+biblioteca/<guitar>/<position>/acordes/c6-40_c5-47-t1.wav
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ from tone_analyzer.notes import midi_name
 
 STANDARD_TUNING: dict[int, int] = {6: 40, 5: 45, 4: 50, 3: 55, 2: 59, 1: 64}
 _NOTE_RE = re.compile(r"^c([1-6])-(\d+)-([A-G]#?-?\d)\.wav$")
+_CHORD_RE = re.compile(r"^((?:c[1-6]-\d+_)+c[1-6]-\d+)-t(\d+)\.wav$")
+CHORDS_DIR = "acordes"
 
 
 def library_dir() -> Path:
@@ -53,6 +56,24 @@ def list_positions(root: Path, guitar: str) -> list[str]:
 def list_notes(root: Path, guitar: str, position: str) -> list[Path]:
     d = root / guitar / position
     return sorted(p for p in d.iterdir() if parse_note_filename(p.name))
+
+
+def chord_filename(voicing: list[tuple[int, int]], take: int) -> str:
+    return "_".join(f"c{s}-{m}" for s, m in voicing) + f"-t{take}.wav"
+
+
+def parse_voicing(text: str) -> list[tuple[int, int]]:
+    return [(int(p[1]), int(p.split("-")[1])) for p in text.split("_")]
+
+
+def parse_chord_filename(name: str) -> list[tuple[int, int]] | None:
+    m = _CHORD_RE.match(name)
+    return parse_voicing(m.group(1)) if m else None
+
+
+def list_chords(root: Path, guitar: str, position: str) -> list[Path]:
+    d = root / guitar / position / CHORDS_DIR
+    return sorted(p for p in d.iterdir() if parse_chord_filename(p.name)) if d.is_dir() else []
 
 
 def read_yaml(path: Path) -> dict:
