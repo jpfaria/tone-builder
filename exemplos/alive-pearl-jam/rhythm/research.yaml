@@ -1,0 +1,89 @@
+# Step 0 for "Alive" (Pearl Jam, Ten, London Bridge Studio, Seattle). Every quote was read on the opened page on 18/09/2026; search summaries were not used.
+# Take provenance: the album take of "Alive" is the January 1991 London Bridge demo session (band then called Mookie Blaylock),
+#   carried over to Ten; it is NOT from the March/April 1991 Ten sessions. McCready's outro solo was finished by Tim Palmer at the June 1991 mix in England.
+#   Source: https://en.wikipedia.org/wiki/Alive_(Pearl_Jam_song) -- "The band, then called Mookie Blaylock, recorded 'Alive' during a demo session at London Bridge studio in January 1991. The version recorded during this session would later appear on the group's debut album, Ten."
+#   Source: https://en.wikipedia.org/wiki/Ten_(Pearl_Jam_album) -- "A few tracks were previously recorded at London Bridge in January, but \"only 'Alive' was carried over from that session.\""
+# Rhythm player: Stone Gossard (credited "rhythm guitar" in Ten personnel, Wikipedia Ten/Alive pages); lead/solo: Mike McCready.
+# No source found gives gear specific to the "Alive" take; all blocks below are album-wide (Ten era) evidence.
+song: Alive
+artist: Pearl Jam
+part: rhythm
+performer: Stone Gossard
+take: January 1991 London Bridge demo session (carried over to Ten)
+blocks:
+# (guitar, outside the block classes)   - class: guitar
+# (guitar, outside the block classes)     unit: Gibson Les Paul Custom (cherry sunburst)
+# (guitar, outside the block classes)     era: record  # album-wide (Ten recording and touring), not Alive-specific; secondary site citing Equipboard
+# (guitar, outside the block classes)     sources:
+# (guitar, outside the block classes)       - https://guitargangsters.net/stone-gossard-guitars-gear/
+# (guitar, outside the block classes)     quote: "Stone Gossard's primary guitar for the recording and touring of Ten and the early Pearl Jam era was a Gibson Les Paul Custom in cherry sunburst finish"
+# (guitar, outside the block classes)   - class: guitar
+# (guitar, outside the block classes)     unit: Gibson Les Paul Custom Goldtop ('54 / '72) or pre-Pearl Jam Sunburst
+# (guitar, outside the block classes)     era: record  # article on Ten gear, album-wide, not Alive-specific
+# (guitar, outside the block classes)     sources:
+# (guitar, outside the block classes)       - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+# (guitar, outside the block classes)     quote: "Gossard usou principalmente dois modelos Les Paul Custom Goldtop, um de '54 e outro de '72, além da Sunburst que antecede os próprios Pearl Jam, vindo já de quando tocava nos Mother Love Bone."
+  - class: amp
+    unit: Marshall JCM800   # dirty; Fender for clean (next blocks)
+    era: record  # album-wide statement for Ten (Guitar World cited by Wikipedia), not Alive-specific
+    sources:
+      - https://en.wikipedia.org/wiki/Ten_(Pearl_Jam_album)
+    quote: "Both guitarists used \"Marshall JCM800s for dirty tones and Fenders for clean parts.\""
+  - class: amp
+    unit: Marshall JCM800   # JCM800/JMP 2204; Fender Twin for Gossard's clean
+    era: record  # article on Ten gear, album-wide, not Alive-specific
+    sources:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "Nos amps sabe-se que ambos usavam Marshall JCM800 e JMP, os modelos 2204."
+  - class: amp
+    unit: Fender Twin
+    era: record  # album-wide, not Alive-specific
+    sources:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "Além de Marshall, McCready usava um Fender Bassman, a versão combo 4×10, e Gossard modelos Fender Twin."
+  - class: single_drive
+    unit: Ibanez TS-9   # Tube Screamer
+    era: record  # album-wide Ten article, not Alive-specific
+    sources:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "Gossard usou uma som ainda mais cru, imitando o colega no Tube Screamer e com pouco mais que um Boss Stereo Chorus."
+  - class: time_fx
+    unit: Boss Stereo Chorus
+    era: record  # album-wide Ten article, not Alive-specific; unclear if engaged on Alive rhythm
+    sources:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/
+    quote: "Gossard usou uma som ainda mais cru, imitando o colega no Tube Screamer e com pouco mais que um Boss Stereo Chorus."
+  - class: time_fx
+    unit: Lexicon PCM   # 2x PCM stereo + Eventide H3000 on bus faders (mix reverb)
+    absent_from_catalog: true
+    era: record  # from "Even Flow" Classic Track (same album, Dave Hillis); album-wide studio practice only; Alive was tracked in the January session, may not apply
+    sources:
+      - https://www.mixonline.com/recording/classic-track-even-flow-pearl-jam-367587
+    quote: "we used two Lexicon PCMs in stereo—two mono ones together—with an Eventide H3000, and we'd bring those up on the bus faders and slowly bring them in and out for any type of reverb or 'milk and honey,' as I called it, to put on anything."
+not_found:
+  - class: cab
+    searched:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # names amps, no cab for Ten
+      - https://en.wikipedia.org/wiki/Ten_(Pearl_Jam_album)   # amps only
+      - https://www.mixonline.com/recording/classic-track-even-flow-pearl-jam-367587   # mic'ing described is McCready's Marshall/Bassman, no cab named for Gossard
+      - https://guitarfxdepot.com/rigs/stone-gossard-pearl-jam-guitar-rig/   # Marshall 1960 4x12 is 1995 (Guitar World Apr 1995) tour era, not record
+  - class: stacked_drives
+    searched:
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # only a single TS for Gossard
+      - https://guitarfxdepot.com/rigs/stone-gossard-pearl-jam-guitar-rig/   # Hyperfuzz + TS-9 + DOD EQ is 1995 era; page never mentions Ten/Alive
+  - class: boost
+    searched:
+      - https://guitarfxdepot.com/rigs/stone-gossard-pearl-jam-guitar-rig/   # DOD graphic EQ as boost is 1995 era, not record
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # no boost listed
+  - class: compressor
+    searched:
+      - https://www.mixonline.com/recording/classic-track-even-flow-pearl-jam-367587   # only compressor named is on Vedder's vocal (UREI 1178)
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # none
+      - https://en.wikipedia.org/wiki/Alive_(Pearl_Jam_song)   # none
+  - class: eq
+    searched:
+      - https://guitarfxdepot.com/rigs/stone-gossard-pearl-jam-guitar-rig/   # DOD graphic EQ is 1995 era
+      - https://www.mixonline.com/recording/classic-track-even-flow-pearl-jam-367587   # Neve pres on McCready's amp, no EQ settings
+      - https://artesonora.pt/hot-gear/o-som-de-mike-mccready-stone-gossard-em-ten/   # none
+# Rejected (not record era): guitarfxdepot Matchless H/C-30 + Marshall 1960 4x12 + brown Fender Deluxe (Guitar World 1995); 1968 Marshall JMP / Trentino (Riot Act).
+# Not opened as source: rollingstone.com making-of-Ten (redirects to tollbit paywall); guitarworld.com/features/mike-mccready-ten (article body not returned); tonemirror.so (unsourced settings).

@@ -1,0 +1,46 @@
+device: mvave
+name: DIG Alive Base
+blocks:
+- category: AMP
+  model: 21J800_CL_196
+  knobs: {}
+- category: MOD
+  model: Chorus Stereo
+  knobs: {}
+commands:
+- - enable
+  - WAH
+  - 'off'
+- - enable
+  - FX
+  - 'off'
+- - enable
+  - GATE
+  - 'off'
+- - enable
+  - DS
+  - 'off'
+- - model
+  - AMP
+  - 21J800_CL_196
+- - enable
+  - AMP
+  - 'on'
+- - enable
+  - CAB
+  - 'off'
+- - enable
+  - EQ
+  - 'off'
+- - model
+  - MOD
+  - Chorus Stereo
+- - enable
+  - MOD
+  - 'on'
+- - enable
+  - DLY
+  - 'off'
+- - enable
+  - REV
+  - 'off'
