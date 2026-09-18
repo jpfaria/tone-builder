@@ -13,8 +13,8 @@ from tone_builder import library, recorder, song_audio
 from tone_builder.audio import load_mono
 from tone_builder.strings import library_by_midi
 from tone_builder.chords import recorded_by_midis
-from tone_builder.target import DEFAULT_DETECTOR, build_chord_target, build_target
-from tone_builder.validator import known_truth
+from tone_builder.target import DEFAULT_DETECTOR, build_chord_target, build_target, merge_targets
+from tone_builder.validator import CHORD_SET_OK_PCT, known_truth, known_truth_chords, summed_vs_recorded
 
 MAX_ERROR_DB = 2.0   # spec: known-truth error <= 2 dB at -6 dB dominance, zero false positives
 
@@ -112,8 +112,7 @@ def _target(a) -> int:
     disc, lead = load_mono(Path(a.disc)), load_mono(Path(a.lead))
     t = build_target(disc, lead, set(by_midi), window=_window(a))
     if not a.no_chords:
-        t += build_chord_target(disc, lead, window=_window(a), detector=a.chord_detector)
-        t.sort(key=lambda e: e["start_s"])
+        t = merge_targets(t, build_chord_target(disc, lead, window=_window(a), detector=a.chord_detector))
     Path(a.out).write_text(json.dumps(t, indent=1))
     for n in t:
         m, sec = divmod(n["start_s"], 60)
@@ -235,7 +234,43 @@ def _verify(a) -> int:
     return 0 if r["match"] else 1
 
 
+DETECTORS = ("salience", "basic-pitch")
+
+
+def _validate_chords(a) -> int:
+    import tempfile
+
+    root = _root(a)
+    by_midi = library_by_midi(root, a.guitar, a.position)
+    workdir = Path(tempfile.mkdtemp(prefix="tone-builder-validate-"))
+    detectors = a.detector or list(DETECTORS)
+    rc = 0
+    print("detector    dominance  chords  set ok %  false notes  error dB  false positives")
+    for detector in detectors:
+        for d in a.dominance:
+            try:
+                r = known_truth_chords(by_midi, detector, dominance_db=d, workdir=workdir)
+            except ValueError as e:
+                print(f"{detector}: skipped ({e})")
+                break
+            err = r["error_db"]
+            print(f"{detector:10s}  {d:+6.0f} dB  {r['chords']:6d}  "
+                  f"{r['set_ok_pct'] if r['set_ok_pct'] is not None else float('nan'):7.1f}  "
+                  f"{r['false_notes']:12d}  {err if err is not None else float('nan'):8.2f}  "
+                  f"{r['false_positives']:15d}")
+            if detector == DEFAULT_DETECTOR and d == -6 and (
+                    r["set_ok_pct"] is None or r["set_ok_pct"] < CHORD_SET_OK_PCT
+                    or r["false_notes"] > 0 or err is None or err > MAX_ERROR_DB):
+                rc = 1
+    sr = summed_vs_recorded(by_midi, recorded_by_midis(root, a.guitar, a.position), workdir)
+    print(f"summed vs recorded: {sr['pairs']} pairs  "
+          f"{sr['error_db'] if sr['error_db'] is not None else float('nan'):.2f} dB")
+    return rc
+
+
 def _validate(a) -> int:
+    if a.chords:
+        return _validate_chords(a)
     notes = library.list_notes(_root(a), a.guitar, a.position)
     print("dominance  notes  harmonics/note  error dB  false positives")
     rc = 0
@@ -291,6 +326,9 @@ def main(argv: list[str] | None = None) -> int:
     vp.add_argument("--position", default="pos5")
     vp.add_argument("--dominance", type=float, nargs="+", default=[-6.0, -3.0, 0.0, 6.0])
     vp.add_argument("--root")
+    vp.add_argument("--chords", action="store_true", help="known-truth check of chord detection")
+    vp.add_argument("--detector", nargs="+", choices=("salience", "basic-pitch"),
+                     help="--chords only; default: both")
     bp = sub.add_parser("build", help="build one tone on one device")
     bp.add_argument("--device", required=True)
     bp.add_argument("--artist", required=True)

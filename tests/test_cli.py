@@ -82,6 +82,24 @@ def test_target_writes_notes_with_a_library_pair(tmp_path: Path, capsys):
     assert "D4" in capsys.readouterr().out
 
 
+def test_target_drops_the_note_that_fires_at_a_chords_attack(tmp_path: Path, capsys):
+    import json
+
+    from tests.synth import note, write
+
+    pos = tmp_path / "lib" / "g" / "pos5"
+    write(pos / library.note_filename(6, 40), note(40, start_s=0.02))
+    write(pos / library.note_filename(5, 47), note(47, start_s=0.02))
+    library.write_yaml(tmp_path / "lib" / "g" / "guitarra.yaml", {"name": "g"})
+    disc = write(tmp_path / "disc.wav", note(40, seconds=1.0, amp=0.5) + note(47, seconds=1.0, amp=0.08))
+    out = tmp_path / "target.json"
+    rc = cli.main(["target", str(disc), str(disc), "--guitar", "g", "--position", "pos5",
+                   "--root", str(tmp_path / "lib"), "--out", str(out)])
+    assert rc == 0
+    t = json.loads(out.read_text())
+    assert [n["kind"] for n in t] == ["chord"]
+
+
 def test_validate_passes_on_the_shipped_library(capsys):
     import pytest
 
@@ -91,6 +109,20 @@ def test_validate_passes_on_the_shipped_library(capsys):
     assert cli.main(["validate", "--dominance", "-6", "0"]) == 0
     out = capsys.readouterr().out
     assert "-6" in out and "false positives" in out
+
+
+def test_validate_chords_skips_basic_pitch_when_not_installed(tmp_path: Path, capsys):
+    from tests.synth import note, write
+
+    pos = tmp_path / "g" / "pos5"
+    pos.mkdir(parents=True)
+    library.write_yaml(tmp_path / "g" / "guitarra.yaml", {"name": "g"})
+    for s, m in ((6, 40), (5, 47)):
+        write(pos / library.note_filename(s, m), note(m, start_s=0.02, n_harm=12))
+    rc = cli.main(["validate", "--chords", "--root", str(tmp_path), "--guitar", "g", "--position", "pos5"])
+    out = capsys.readouterr().out
+    assert "basic-pitch: skipped" in out
+    assert rc in (0, 1)
 
 
 def test_build_on_ampero_needs_the_work_patch(tmp_path, capsys):

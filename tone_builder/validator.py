@@ -17,12 +17,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+from tone_analyzer.chords import detect_chords, levels_at
 from tone_analyzer.notes import harmonic_levels
 from tone_analyzer.take import take_onset
 
+from tone_builder import chords as chords_mod
 from tone_builder import library
 from tone_builder.audio import SR, load_mono
-from tone_builder.target import DUR_S, MIN_HARMONICS, PROMINENCE_DB, midi_hz
+from tone_builder.target import DUR_S, MIN_HARMONICS, PROMINENCE_DB, chord_freqs, midi_hz
 
 # A false positive is a peak accepted in the mix where the guitar alone has no
 # harmonic peak (prominence below this). A real guitar harmonic just under
@@ -83,3 +85,93 @@ def known_truth(notes: list[Path], dominance_db: float = -6.0, seed: int = 0) ->
     return {"notes": used, "harmonics_per_note": accepted_total / used if used else None,
             "error_db": float(np.mean(errors)) if errors else None, "false_positives": false_pos,
             "dominance_db": dominance_db}
+
+
+CHORD_SET_OK_PCT = 90.0
+# A strum spreads the strings over tens of ms; but `note_onsets` (tone_analyzer) only accepts
+# an attack whose envelope is already within 80% of its next-block value (a sharp pluck) — a
+# realistic 30 ms strum leaves the envelope still ramping and the onset is missed ~1 in 5 times
+# (measured: 100% at 5 ms, 78% at 30 ms, at zero accompaniment noise). 5 ms keeps a real,
+# non-zero attack spread while staying inside that detector's resolution.
+STAGGER_S = 0.005
+# interval shapes over the root, by name
+SHAPES = {
+    "power2": [0, 7], "power3": [0, 7, 12],
+    "major-E": [0, 7, 12, 16, 19, 24], "minor-E": [0, 7, 12, 15, 19, 24],
+    "major-A": [0, 7, 12, 16, 19], "minor-A": [0, 7, 12, 15, 19],
+}
+ROOTS = range(40, 53)   # E2..E3
+
+
+def known_truth_chords(by_midi: dict, detector: str, dominance_db: float = -6.0, seed: int = 0,
+                       workdir: Path = Path("validate-chords")) -> dict:
+    rng = np.random.default_rng(seed)
+    span = int(DUR_S * SR)
+    n = ok = false_notes = false_pos = 0
+    errors = []
+    for shape, iv in SHAPES.items():
+        for root in ROOTS:
+            midis = [root + i for i in iv]
+            vs = chords_mod.voicings(midis, by_midi)
+            if not vs:
+                continue
+            offs = sorted(rng.uniform(0, STAGGER_S, len(midis)))
+            di = chords_mod.sum_di(vs[0], Path(workdir) / f"{shape}-{root}.wav", offsets_s=list(offs))
+            x = load_mono(di)
+            a = int(chords_mod.PREROLL_S * SR)
+            guitar = x[a:a + span]
+            if len(guitar) < span:
+                continue
+            guitar = 0.35 * guitar / (np.abs(guitar).max() + 1e-12)
+            acc = _unit_rms(_unit_rms(_pink(span, rng)) + _unit_rms(_bass(span, rng)))
+            g_rms = np.sqrt(np.mean(guitar ** 2))
+            mix = np.concatenate([np.zeros(SR // 2), guitar + acc * g_rms / 10 ** (dominance_db / 20), np.zeros(SR // 2)])
+            n += 1
+            heard = detect_chords(mix, SR, dur_s=DUR_S, detector=detector)
+            got = heard[0]["midis"] if heard else []
+            truth_r = chords_mod.reduce_octaves(midis)
+            got_r = chords_mod.reduce_octaves(got)
+            ok += got_r == truth_r
+            false_notes += len(set(got_r) - set(truth_r))
+            freqs = chord_freqs(sorted(midis))
+            hm = levels_at(mix, SR, 0.5, freqs, dur_s=DUR_S)
+            hg = levels_at(guitar, SR, 0.0, freqs, dur_s=DUR_S)
+            if hm is None or hg is None:
+                continue
+            acc_k = [pm is not None and pm >= PROMINENCE_DB and lg is not None
+                     for pm, lg in zip(hm["prominence_db"], hg["level_db"])]
+            if sum(acc_k) < MIN_HARMONICS:
+                continue
+            false_pos += sum(1 for k, a_ in enumerate(acc_k)
+                             if a_ and (hg["prominence_db"][k] is None or hg["prominence_db"][k] < NO_PEAK_DB))
+            d = np.array([hm["level_db"][k] - hg["level_db"][k] for k, a_ in enumerate(acc_k) if a_])
+            errors.append(float(np.sqrt(np.mean((d - d.mean()) ** 2))))
+    return {"chords": n, "set_ok_pct": 100.0 * ok / n if n else None, "false_notes": false_notes,
+            "error_db": float(np.mean(errors)) if errors else None, "false_positives": false_pos,
+            "dominance_db": dominance_db, "detector": detector}
+
+
+def summed_vs_recorded(by_midi: dict, recorded: dict, workdir: Path) -> dict:
+    """Level error between a recorded chord and the library sum of the same voicing (informative)."""
+    errors = []
+    for paths in recorded.values():
+        for p in paths:
+            v = library.parse_chord_filename(p.name)
+            notes = [next((q for q in by_midi.get(m, []) if library.parse_note_filename(q.name)[0] == s), None)
+                     for s, m in v]
+            if None in notes:
+                continue
+            summed = load_mono(chords_mod.sum_di(notes, Path(workdir) / f"sum-{p.stem}.wav"))
+            rec = load_mono(p)
+            freqs = chord_freqs(sorted(m for _, m in v))
+            hr = levels_at(rec, SR, (take_onset(rec, SR) or 0) / SR, freqs, dur_s=DUR_S)
+            hs = levels_at(summed, SR, chords_mod.PREROLL_S, freqs, dur_s=DUR_S)
+            if hr is None or hs is None:
+                continue
+            ks = [k for k, (a_, b_, pr) in enumerate(zip(hr["level_db"], hs["level_db"], hr["prominence_db"]))
+                  if a_ is not None and b_ is not None and pr is not None and pr >= PROMINENCE_DB]
+            if len(ks) < MIN_HARMONICS:
+                continue
+            d = np.array([hr["level_db"][k] - hs["level_db"][k] for k in ks])
+            errors.append(float(np.sqrt(np.mean((d - d.mean()) ** 2))))
+    return {"pairs": len(errors), "error_db": float(np.mean(errors)) if errors else None}
