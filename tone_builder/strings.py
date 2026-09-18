@@ -23,18 +23,27 @@ def library_by_midi(root: Path, guitar: str, position: str) -> dict[int, list[Pa
     return out
 
 
-def choose_strings(target: list[dict], by_midi: dict[int, list[Path]], render: Renderer,
-                   workdir: Path) -> list[dict]:
+def choose_dis(target: list[dict], candidates_for, render: Renderer, workdir: Path) -> list[dict]:
+    """candidates_for(entry) -> [(DI path, source)]; every candidate is rendered and measured."""
     out = []
-    for i, note in enumerate(target):
+    for i, entry in enumerate(target):
         alts: dict[str, float | None] = {}
-        for di in by_midi.get(note["midi"], []):
-            x = render_note(render, di, workdir, f"string-{i:02d}-{di.stem}")
-            d = note_deviation(note, x)
+        sources: dict[str, str] = {}
+        for di, source in candidates_for(entry):
+            x = render_note(render, di, workdir, f"di-{i:02d}-{Path(di).stem}")
+            d = note_deviation(entry, x)
             alts[str(di)] = None if d is None else d["rms_db"]
+            sources[str(di)] = source
         scored = [(v, k) for k, v in alts.items() if v is not None]
         if not scored:
             continue
         best_dev, best = min(scored)
-        out.append({"note": note, "di": Path(best), "deviation": best_dev, "alternatives": alts})
+        out.append({"note": entry, "di": Path(best), "source": sources[best], "deviation": best_dev,
+                    "alternatives": alts})
     return out
+
+
+def choose_strings(target: list[dict], by_midi: dict[int, list[Path]], render: Renderer,
+                   workdir: Path) -> list[dict]:
+    return choose_dis(target, lambda n: [(p, "library-note") for p in by_midi.get(n["midi"], [])],
+                      render, workdir)

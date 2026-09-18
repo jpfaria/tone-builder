@@ -39,7 +39,7 @@ def render_note(render: Renderer, di: Path, workdir: Path, tag: str) -> np.ndarr
 
 def _signature(render, assignments: list[dict]) -> str:
     # the chain too, when the renderer exposes it: same folder, other settings = other measurement
-    key = [getattr(render, "blocks", None)] + [[a["note"]["midi"], a["note"]["start_s"], a["note"]["level_db"], Path(a["di"]).name] for a in assignments]
+    key = [getattr(render, "blocks", None)] + [[a["note"].get("midi", a["note"].get("midis")), a["note"]["start_s"], a["note"]["level_db"], Path(a["di"]).name] for a in assignments]
     return hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
 
 

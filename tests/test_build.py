@@ -104,3 +104,53 @@ def test_unit_without_catalog_model_becomes_the_class_reason(tmp_path):
     out = build_tone(disc, disc, by_midi, r, dev, tmp_path / "w", "s")
     assert "Dumble 4x12" in out["report"]["classes"]["cab"]["reason"]
     assert out["report"]["absent_from_catalog"] == {"cab": ["Dumble 4x12"]}
+
+
+import re
+
+from tone_builder import library as lib_mod
+
+CHORD = [40, 47, 56]
+CHORD_STRINGS = (6, 5, 3)
+
+
+class ChordDevice(FakeDevice):
+    """Renders any DI by re-synthesizing each note found in its file name with the chain's gains."""
+
+    def renderer(self, blocks):
+        total = np.sum([b["gains"] for b in blocks], axis=0) if blocks else np.zeros(8)
+
+        def render(src, dst):
+            # a library note (c6-40-E2.wav) or a summed chord DI (c6-40_c5-47_c3-56.wav), possibly
+            # copied under a prefix/suffix (margin: 00-c6-40_c5-47_c3-56+0.wav)
+            midis = [int(m) for m in re.findall(r"(?<![0-9])c[1-6]-([0-9]+)", src.stem)]
+            y = sum(note(m, seconds=1.0, start_s=0.02, gains_db=list(total)) for m in midis)
+            sf.write(str(dst), y, 48000, subtype="FLOAT")
+        return render
+
+
+def _chord(gains=None):
+    return sum(note(m, seconds=1.0, gains_db=gains) for m in CHORD)
+
+
+def test_build_on_a_chord_only_part(tmp_path):
+    disc = np.concatenate([_chord(TARGET) for _ in range(6)])
+    by_midi = {m: [write(tmp_path / "lib" / lib_mod.note_filename(s, m), note(m, seconds=1.0, start_s=0.02))]
+               for s, m in zip(CHORD_STRINGS, CHORD)}
+    amp = _opt("amp1", "amp", "Amp", [0.0] * 8)
+    drive = _opt("ts", "single_drive", "TS", TARGET)
+    dev = ChordDevice({"amp": [amp], "single_drive": [drive]})
+    res = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w", "x",
+                     chords={"detector": "salience", "recorded": {}})
+    kinds = {n["kind"] for n in res["report"]["notes"]}
+    assert kinds == {"chord"}
+    assert {n["source"] for n in res["report"]["notes"]} == {"summed"}
+    assert res["report"]["final_deviation_db"] is not None
+
+
+def test_empty_target_says_what_was_seen(tmp_path):
+    disc = _chord()
+    dev = ChordDevice({"amp": [_opt("amp1", "amp", "Amp", [0.0] * 8)]})
+    with pytest.raises(ValueError, match=r"chords_seen=1"):
+        build_tone(disc, disc, {}, RESEARCH, dev, tmp_path / "w", "x",
+                   chords={"detector": "salience", "recorded": {}})

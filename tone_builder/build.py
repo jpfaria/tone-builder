@@ -27,8 +27,9 @@ from tone_builder.battery import Candidate, run_battery
 from tone_builder.margin import measure_margin
 from tone_builder.render import measure
 from tone_builder.research import validate
-from tone_builder.strings import choose_strings
-from tone_builder.target import build_target
+from tone_builder.chords import di_candidates
+from tone_builder.strings import choose_dis
+from tone_builder.target import build_chord_target, build_target
 
 # Chain order, first to last.
 SLOTS = ("compressor", "boost", "drive", "amp", "cab", "eq", "time_fx")
@@ -66,7 +67,8 @@ def eq_gains(points: list[list[tuple[float, float]]], notes: list[int]) -> dict[
 
 
 def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict, device,
-               workdir: Path, name: str, window=None) -> dict:
+               workdir: Path, name: str, window=None, chords: dict | None = None) -> dict:
+    """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only."""
     errors = validate(research)
     if errors:
         raise ValueError("research is invalid:\n  " + "\n  ".join(errors))
@@ -75,17 +77,35 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
         raise Unresolved(unresolved)
     if not options.get("amp"):
         raise ValueError("the research names no amp with a model in the device catalog")
-    target = build_target(disc, lead, set(by_midi), window=window)
+    stats: dict = {}
+    target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
+    if chords is not None:
+        target += build_chord_target(disc, lead, window=window, detector=chords["detector"], stats=stats)
+        target.sort(key=lambda e: e["start_s"])
+
+    def seen() -> str:
+        return " ".join(f"{k}={v}" for k, v in sorted(stats.items())) or "no attack found"
+
     if not target:
-        raise ValueError("no target note: nothing on the separated track matches the library with enough harmonics")
+        raise ValueError(f"no target note or chord: nothing on the separated track matches the library "
+                         f"with enough harmonics ({seen()})")
 
     workdir = Path(workdir)
     state: dict[str, list[dict]] = {"amp": options["amp"][0].blocks}
     if options.get("cab"):
         state["cab"] = options["cab"][0].blocks
-    assignments = choose_strings(target, by_midi, device.renderer(assemble(state)), workdir / "strings")
+
+    def candidates_for(entry: dict) -> list:
+        if entry["kind"] == "note":
+            return [(p, "library-note") for p in by_midi.get(entry["midi"], [])]
+        cands = di_candidates(entry["midis"], by_midi, chords["recorded"], workdir / "chords")
+        if not cands:
+            stats["chords_no_voicing"] = stats.get("chords_no_voicing", 0) + 1
+        return cands
+
+    assignments = choose_dis(target, candidates_for, device.renderer(assemble(state)), workdir / "strings")
     if not assignments:
-        raise ValueError("no target note could be measured with the researched amp")
+        raise ValueError(f"no target note or chord could be measured with the researched amp ({seen()})")
     fit, _ = retention.split(len(assignments))
     classes: dict[str, dict] = {}
 
@@ -170,6 +190,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     rep = report_mod.build(classes, margin, final["deviation"])
     rep["absent_from_catalog"] = absent
     rep["final_deviation_db"] = final["deviation"]
-    rep["notes"] = [{"name": a["note"]["name"], "start_s": a["note"]["start_s"], "di": str(a["di"]),
-                     "deviation_db": d} for a, d in zip(assignments, final["per_note"])]
+    rep["notes"] = [{"name": a["note"]["name"], "kind": a["note"]["kind"], "start_s": a["note"]["start_s"],
+                     "di": str(a["di"]), "source": a["source"], "deviation_db": d}
+                    for a, d in zip(assignments, final["per_note"])]
     return {"report": rep, "preset": device.preset(final_blocks, name), "blocks": final_blocks, "target": target}

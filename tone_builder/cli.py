@@ -12,7 +12,8 @@ import yaml
 from tone_builder import library, recorder, song_audio
 from tone_builder.audio import load_mono
 from tone_builder.strings import library_by_midi
-from tone_builder.target import build_target
+from tone_builder.chords import recorded_by_midis
+from tone_builder.target import DEFAULT_DETECTOR, build_chord_target, build_target
 from tone_builder.validator import known_truth
 
 MAX_ERROR_DB = 2.0   # spec: known-truth error <= 2 dB at -6 dB dominance, zero false positives
@@ -80,12 +81,16 @@ def _record(a) -> int:
 def _target(a) -> int:
     import json
     by_midi = library_by_midi(_root(a), a.guitar, a.position)
-    t = build_target(load_mono(Path(a.disc)), load_mono(Path(a.lead)), set(by_midi), window=_window(a))
+    disc, lead = load_mono(Path(a.disc)), load_mono(Path(a.lead))
+    t = build_target(disc, lead, set(by_midi), window=_window(a))
+    if not a.no_chords:
+        t += build_chord_target(disc, lead, window=_window(a), detector=a.chord_detector)
+        t.sort(key=lambda e: e["start_s"])
     Path(a.out).write_text(json.dumps(t, indent=1))
     for n in t:
         m, sec = divmod(n["start_s"], 60)
         print(f"{n['name']:4s} {int(m)}:{sec:04.1f}  {sum(n['accepted'])} harmonics")
-    print(f"{len(t)} target notes -> {a.out}")
+    print(f"{len(t)} target notes and chords -> {a.out}")
     return 0 if t else 1
 
 
@@ -126,7 +131,10 @@ def _build(a) -> int:
     try:
         res = build_tone(load_mono(disc_path), load_mono(lead_path),
                          library_by_midi(_root(a), a.guitar, a.position), load_research(Path(a.research)),
-                         device, out / "work", a.name, window=_window(a))
+                         device, out / "work", a.name, window=_window(a),
+                         chords=None if a.no_chords else {
+                             "detector": a.chord_detector,
+                             "recorded": recorded_by_midis(_root(a), a.guitar, a.position)})
     except Unresolved as e:
         print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
         return 3
@@ -240,6 +248,8 @@ def main(argv: list[str] | None = None) -> int:
     tp.add_argument("--root")
     tp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
     tp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
+    tp.add_argument("--chord-detector", default=DEFAULT_DETECTOR, choices=("salience", "basic-pitch"))
+    tp.add_argument("--no-chords", action="store_true", help="target single notes only")
     vp = sub.add_parser("validate", help="known-truth check of the target reading")
     vp.add_argument("--guitar", default="prs-silver-sky-se")
     vp.add_argument("--position", default="pos5")
@@ -263,6 +273,8 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--root")
     bp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
     bp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
+    bp.add_argument("--chord-detector", default=DEFAULT_DETECTOR, choices=("salience", "basic-pitch"))
+    bp.add_argument("--no-chords", action="store_true", help="target single notes only")
     np_ = sub.add_parser("linearity", help="rank a unit's captures by how clean they are (no recording needed)")
     np_.add_argument("--device", required=True)
     np_.add_argument("--class", dest="klass", default="amp")
