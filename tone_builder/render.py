@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
 from typing import Callable
@@ -34,12 +36,34 @@ def render_note(render: Renderer, di: Path, workdir: Path, tag: str) -> np.ndarr
     return x
 
 
+def _signature(render, assignments: list[dict]) -> str:
+    # the chain too, when the renderer exposes it: same folder, other settings = other measurement
+    key = [getattr(render, "blocks", None)] + [[a["note"]["midi"], a["note"]["start_s"], a["note"]["level_db"], Path(a["di"]).name] for a in assignments]
+    return hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
+
+
 def measure(render: Renderer, assignments: list[dict], workdir: Path) -> dict:
-    """assignments: [{"note": target note, "di": library WAV}] in time order."""
+    """assignments: [{"note": target note, "di": library WAV}] in time order.
+
+    The result is kept in `workdir/measure.json`, keyed by the target notes and DIs: a build killed
+    hours in resumes where it stopped."""
+    workdir = Path(workdir)
+    cache, sig = workdir / "measure.json", _signature(render, assignments)
+    if cache.is_file():
+        try:
+            saved = json.loads(cache.read_text())
+            if saved.get("signature") == sig:
+                return saved["result"]
+        except (ValueError, KeyError):
+            pass
     per_note = []
     for i, a in enumerate(assignments):
         x = render_note(render, a["di"], workdir, f"{i:02d}-{a['note']['midi']}")
         per_note.append(note_deviation(a["note"], x))
-    return {"deviation": mean_deviation(per_note),
-            "per_note": [None if p is None else p["rms_db"] for p in per_note],
-            "points": [[] if p is None else p["points"] for p in per_note]}
+    result = {"deviation": mean_deviation(per_note),
+              "per_note": [None if p is None else p["rms_db"] for p in per_note],
+              "points": [[] if p is None else [list(pt) for pt in p["points"]] for p in per_note]}
+    result = json.loads(json.dumps(result))          # what a resumed run would read back, exactly
+    workdir.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps({"signature": sig, "result": result}))
+    return result

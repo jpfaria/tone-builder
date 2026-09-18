@@ -39,3 +39,25 @@ def test_a_measured_render_is_not_kept_on_disk(tmp_path, monkeypatch):
     monkeypatch.setenv("TONE_BUILDER_KEEP_RENDERS", "1")
     render_note(copy, di, tmp_path / "w", "b")
     assert (tmp_path / "w" / "b.wav").exists()
+
+
+def test_a_measurement_already_on_disk_is_not_rendered_again(tmp_path):
+    """A brand-wide unit takes hours; a build killed at capture 323 of 400 must resume, not restart."""
+    from tests.synth import note, write
+    from tone_builder.render import measure
+    from tone_builder.target import build_target
+
+    disc = note(62)
+    a = [{"note": build_target(disc, disc, {62})[0], "di": write(tmp_path / "c1-62-D4.wav", note(62, start_s=0.02))}]
+    calls = []
+
+    def render(src, dst):
+        calls.append(src)
+        write(dst, note(62, start_s=0.02))
+
+    first = measure(render, a, tmp_path / "w")
+    again = measure(render, a, tmp_path / "w")
+    assert len(calls) == 1 and again == first
+    other = [{**a[0], "note": {**a[0]["note"], "start_s": 9.9}}]       # another target: the cache must not answer
+    measure(render, other, tmp_path / "w")
+    assert len(calls) == 2
