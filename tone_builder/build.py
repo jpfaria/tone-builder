@@ -29,7 +29,7 @@ from tone_builder.render import measure
 from tone_builder.research import validate
 from tone_builder.chords import di_candidates
 from tone_builder.strings import choose_dis
-from tone_builder.target import build_chord_target, build_target
+from tone_builder.target import build_chord_target, build_target, merge_targets
 
 # Chain order, first to last.
 SLOTS = ("compressor", "boost", "drive", "amp", "cab", "eq", "time_fx")
@@ -80,8 +80,8 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     stats: dict = {}
     target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
     if chords is not None:
-        target += build_chord_target(disc, lead, window=window, detector=chords["detector"], stats=stats)
-        target.sort(key=lambda e: e["start_s"])
+        target = merge_targets(target, build_chord_target(disc, lead, window=window,
+                                                          detector=chords["detector"], stats=stats), stats)
 
     def seen() -> str:
         return " ".join(f"{k}={v}" for k, v in sorted(stats.items())) or "no attack found"

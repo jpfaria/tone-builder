@@ -123,3 +123,19 @@ def build_chord_target(disc: np.ndarray, lead: np.ndarray, window: Window | None
                     "name": "+".join(midi_name(m) for m in c["midis"]),
                     "freqs_hz": freqs, "level_db": r[0], "accepted": r[1]})
     return out
+
+
+CHORD_WINS_S = 0.05
+
+
+def merge_targets(notes: list[dict], chords: list[dict], stats: dict | None = None) -> list[dict]:
+    """Notes and chords by start; a note within CHORD_WINS_S of a chord's attack is that chord
+    (the note detector also fires on a chord's root), so the chord stays and the note goes."""
+    starts = [c["start_s"] for c in chords]
+    kept = []
+    for n in notes:
+        if any(abs(n["start_s"] - s) <= CHORD_WINS_S for s in starts):
+            _count(stats, "notes_in_chord")
+            continue
+        kept.append(n)
+    return sorted(kept + list(chords), key=lambda e: e["start_s"])

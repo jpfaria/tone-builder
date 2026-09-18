@@ -148,9 +148,17 @@ def test_build_on_a_chord_only_part(tmp_path):
     assert res["report"]["final_deviation_db"] is not None
 
 
+def test_chord_with_no_playable_voicing_says_what_was_seen(tmp_path):
+    disc = _chord()
+    dev = ChordDevice({"amp": [_opt("amp1", "amp", "Amp", [0.0] * 8)]})
+    with pytest.raises(ValueError, match=r"could be measured.*chords_no_voicing=1 chords_seen=1"):
+        build_tone(disc, disc, {}, RESEARCH, dev, tmp_path / "w", "x",
+                   chords={"detector": "salience", "recorded": {}})
+
+
 def test_empty_target_says_what_was_seen(tmp_path):
     disc = _chord()
     dev = ChordDevice({"amp": [_opt("amp1", "amp", "Amp", [0.0] * 8)]})
-    with pytest.raises(ValueError, match=r"chords_seen=1"):
-        build_tone(disc, disc, {}, RESEARCH, dev, tmp_path / "w", "x",
+    with pytest.raises(ValueError, match=r"no target note or chord: .*chords_seen=1 .*outside_window="):
+        build_tone(disc, disc, {}, RESEARCH, dev, tmp_path / "w", "x", window=(100.0, None),
                    chords={"detector": "salience", "recorded": {}})

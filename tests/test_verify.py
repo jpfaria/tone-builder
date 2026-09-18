@@ -61,3 +61,21 @@ def test_different_preset_still_fails_on_a_device_that_does_not_repeat_itself(tm
                                           tmp_path / "a", repeats=1)["deviation_db"]
     bad = verify(report, target, _jitter([0, -4, 4, -4, 4, -4, 4, -4], 0.5), tmp_path / "b", repeats=4)
     assert bad["match"] is False
+
+
+def test_a_chord_and_a_note_at_the_same_start_are_told_apart_by_kind(tmp_path, monkeypatch):
+    import tone_builder.verify as verify_mod
+    target, report = _case(tmp_path)
+    t0 = target[0]["start_s"]
+    chord = {**target[0], "kind": "chord", "midis": [62, 69], "name": "D4+A4"}
+    seen = []
+
+    def fake_measure(render, assignments, workdir):
+        seen.extend(a["note"]["kind"] for a in assignments)
+        return {"deviation": 1.0}
+    monkeypatch.setattr(verify_mod, "measure", fake_measure)
+    report["final_deviation_db"] = 1.0
+    report["notes"] = [{**report["notes"][0], "kind": "chord", "start_s": t0},
+                       {**report["notes"][0], "start_s": t0}]        # an old report: no "kind" -> note
+    verify(report, [target[0], chord], None, tmp_path / "a", repeats=1)
+    assert seen == ["chord", "note"]

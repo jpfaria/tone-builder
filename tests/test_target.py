@@ -75,3 +75,14 @@ def test_chord_target_honours_the_window_and_counts():
     stats = {}
     assert build_chord_target(x, x, window=(1.0, None), stats=stats) == []
     assert stats["outside_window"] == 1
+
+
+def test_a_note_at_a_chord_attack_is_dropped_the_chord_wins():
+    from tone_builder.target import merge_targets
+    notes = [{"kind": "note", "start_s": 1.02, "midi": 40},     # the power chord's root, 20 ms after
+             {"kind": "note", "start_s": 3.0, "midi": 45}]      # a note on its own
+    chords = [{"kind": "chord", "start_s": 1.0, "midis": [40, 47]}]
+    stats = {}
+    out = merge_targets(notes, chords, stats)
+    assert [(e["kind"], e["start_s"]) for e in out] == [("chord", 1.0), ("note", 3.0)]
+    assert stats["notes_in_chord"] == 1

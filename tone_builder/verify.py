@@ -19,8 +19,11 @@ REPEATS = 3
 
 
 def verify(report: dict, target: list[dict], saved: Renderer, workdir: Path, repeats: int = REPEATS) -> dict:
-    by_start = {round(n["start_s"], 3): n for n in target}
-    assignments = [{"note": by_start[round(n["start_s"], 3)], "di": Path(n["di"])} for n in report["notes"]]
+    # a chord and a note may start together; a report or target written before chords has no "kind"
+    def key(n: dict) -> tuple[str, float]:
+        return n.get("kind", "note"), round(n["start_s"], 3)
+    by_key = {key(n): n for n in target}
+    assignments = [{"note": by_key[key(n)], "di": Path(n["di"])} for n in report["notes"]]
     runs = []
     for i in range(repeats):
         d = Path(workdir) / f"r{i}" if repeats > 1 else Path(workdir)
