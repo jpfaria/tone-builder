@@ -33,3 +33,9 @@ def test_silent_render_gives_none():
 def test_mean_skips_missing_notes():
     assert mean_deviation([{"rms_db": 2.0}, None, {"rms_db": 4.0}]) == 3.0
     assert mean_deviation([None]) is None
+
+
+def test_deviation_points_are_at_the_entry_frequencies():
+    t = _target()
+    d = note_deviation(t, note(62, start_s=0.02))
+    assert {round(hz, 3) for hz, _ in d["points"]} <= {round(f, 3) for f in t["freqs_hz"]}

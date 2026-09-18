@@ -1,7 +1,8 @@
 import numpy as np
+import pytest
 
 from tests.synth import SR, note
-from tone_builder.target import MIN_HARMONICS, build_target, in_window
+from tone_builder.target import MIN_HARMONICS, build_target, freqs_of, in_window, midi_hz
 
 
 def test_target_note_takes_level_from_the_record():
@@ -32,3 +33,15 @@ def test_window_keeps_only_attacks_inside_it():
 
 def test_in_window_bounds():
     assert in_window(1.0, None) and in_window(1.0, (1.0, 2.0)) and not in_window(2.0, (1.0, 2.0))
+
+
+def test_note_entry_carries_kind_and_frequencies():
+    x = note(62)
+    t = build_target(x, x, {62})[0]
+    assert t["kind"] == "note"
+    assert t["freqs_hz"][2] == pytest.approx(3 * midi_hz(62))
+    assert len(t["freqs_hz"]) == len(t["level_db"]) == len(t["accepted"])
+
+
+def test_old_target_json_without_frequencies_still_reads():
+    assert freqs_of({"midi": 69})[1] == pytest.approx(880.0)

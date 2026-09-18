@@ -13,6 +13,7 @@ import numpy as np
 
 from tone_builder.audio import load_mono
 from tone_builder.compare import mean_deviation, note_deviation
+from tone_builder.target import entry_tag
 
 Renderer = Callable[[Path, Path], None]
 SILENCE = 1e-4
@@ -58,7 +59,7 @@ def measure(render: Renderer, assignments: list[dict], workdir: Path) -> dict:
             pass
     per_note = []
     for i, a in enumerate(assignments):
-        x = render_note(render, a["di"], workdir, f"{i:02d}-{a['note']['midi']}")
+        x = render_note(render, a["di"], workdir, f"{i:02d}-{entry_tag(a['note'])}")
         per_note.append(note_deviation(a["note"], x))
     result = {"deviation": mean_deviation(per_note),
               "per_note": [None if p is None else p["rms_db"] for p in per_note],
