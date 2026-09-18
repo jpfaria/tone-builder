@@ -21,7 +21,11 @@ PROMINENCE_DB = 13.0
 MIN_HARMONICS = 5
 DUR_S = 0.6            # the shortest library note is 0.67 s
 N_HARM = 16
-DEFAULT_DETECTOR = "salience"   # decided by `validate --chords` (Task 11)
+# `validate --chords`, prs-silver-sky-se pos5, 18/09/2026, -6 dB: salience set ok 61.5 %, 31 false
+# notes (26 are open-string pitches: likely sympathetic ringing, not measured), error 1.59 dB --
+# FAILS the criterion (>= 90 %, 0 false notes, <= 2 dB). basic-pitch not measured (not installed). Kept as default: the
+# only detector measured; see docs/metodo.md "1b. Acorde".
+DEFAULT_DETECTOR = "salience"
 
 
 def midi_hz(midi: int) -> float:

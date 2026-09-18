@@ -1,7 +1,7 @@
 ---
 tags: [tone-builder, learnings]
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-18
 source: claude-code-sessions
 ---
 
@@ -60,3 +60,10 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
 - **Gotcha / invariant:** `openrig-render` and the plugin catalog live inside `/Applications/OpenRig.app`. While OpenRig itself is being developed the app is reinstalled several times a day; each reinstall removes the binary (17:47: `FileNotFoundError`) or its `libnam_wrapper.dylib` (19:37: `dyld: library not loaded`) for a few seconds and a 2-hour build exits.
 - **Why it matters:** two builds lost on 18/09. Measurements are now cached per candidate (`measure.json`), so a rerun in the same `--out` resumes; and the renderer waits up to 2 minutes for a missing binary. Neither helps against a half-copied app.
 - **Applies to:** any OpenRig build longer than a few minutes → `cp -R /Applications/OpenRig.app ~/.tone-builder/_runtime/` and run with `OPENRIG_RENDER=~/.tone-builder/_runtime/OpenRig.app/Contents/MacOS/openrig-render --plugins-root ~/.tone-builder/_runtime/OpenRig.app/Contents/Resources/plugins`. Also detach it (`nohup … & disown`): a background task dies with the Claude session.
+
+## 2026-09-18 — Chord detection fails on the real library; the chord level reading passes
+
+- **Gotcha / invariant:** `validate --chords` on prs-silver-sky-se pos5 (78 chords built from real library notes, strings spread 0–30 ms, residue 20 dB under): salience finds the right octave-reduced set in **61.5 %** with **31 false notes**, at every dominance (detection runs on the separated track, not the mix). The level reading passes: error 1.59 dB at −6 dB (0.77 at +6), zero false positives. 26 of the 31 false notes are open-string pitches (D3 ×8, A2 ×6, B3 ×6, G3 ×4, E2 ×2): the likely cause is sympathetic ringing of open strings in the real samples, which synthetic tones never have (not yet measured on the samples themselves). The synthetic tests in tone-analyzer passed; the real library is what showed it.
+- **Also measured, in tone-analyzer (task 2b, synthetic strums):** staggered strums (0–30 ms) are found 59/60 exact with 0 false notes after the chord-onset fix; a second strum over a chord still ringing is found ~65 % of the time, and about half of those (34 of 65) read the wrong set — the 0.6 s window mixes the chord still ringing.
+- **Why it matters:** a chord target with an extra open-string note compares against a DI that lacks it; `build` still runs, but chord deviations are not yet trustworthy. The criterion (≥ 90 %, 0 false notes, ≤ 2 dB) was not loosened; `test_chord_known_truth_on_the_shipped_library` is `xfail(strict=True)` and will flip when it passes. basic-pitch was not measured (needs pipx, not installed here).
+- **Applies to:** any change to `detect_chords` or its thresholds → rerun `tone-builder validate --chords --guitar prs-silver-sky-se --position pos5`; real legato strumming (Even Flow's rhythm part) hits the "strum over ringing chord" weakness.

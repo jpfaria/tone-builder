@@ -21,6 +21,7 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 | record audio (full mix) | `$TA tones find "<song>"` — in the library → pass only `--artist --song`, no `--disc` | handed over → pass its path as `--disc`, where it is; `build` has tone-analyzer separate, analyze and store it (~3 min). m4a/AAC → `ffmpeg -ar 48000` to WAV first. None → ask; without it nothing is measured: stop |
 | separated guitar track | the same library entry (`<role>/reference.*`) | never ask and never separate by hand: `build` does it through tone-analyzer. The user handed one over → pass it as `--lead` together with `--disc`: tone-analyzer stores it as that role's reference instead of separating |
 | guitar + selector position | `$TB library list` — one recorded → use it | ask which; offer `library record` |
+| real chords for the library | — | `$TB library record-chord <guitar> <position> <c6-40_c5-47_c4-52> --device … --channel …` (string-midi per note; 3 strums; `library check` confirms the set) |
 | devices | the request | ask |
 | preset name / slot | — never ask | `DIG - <Artist> - <Song> (<part>)`; if that name already exists (`~/.openrig/presets/`, `ampero2 patches`, `mvave presets`) append ` tb2`, ` tb3`…; next empty slot; never overwrite |
 
@@ -42,6 +43,12 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 2. `$TB build --device openrig|ampero2|mvave --artist … --song … [--role guitars] [--disc … [--lead …]] --research … --guitar … --position …
    --name … --out ~/.tone-builder/<song>/<device>-v<N> [--plugins-root …] [--work-patch …]` — minutes to hours: run it
    in the background, one device at a time.
+   - Two guitars in the song → `--role rhythm|solo` (a role stored in the song's tone-analyzer entry,
+     its own separated stem); the part lives in one stretch → `--from M:SS --to M:SS` (only attacks
+     inside it are targeted).
+   - Chords are measured automatically (2+ notes at one attack; DI = every playable voicing of the
+     library, plus recorded chords, chosen by measurement). `--no-chords` = single notes only;
+     `--chord-detector salience|basic-pitch` (default salience).
    - exit 3 lists units with no catalog model: check the catalog; if truly absent set
      `absent_from_catalog: true` on that block (it becomes the class reason). Never type a model id.
 3. Read `report.md`. Relay **status as written** (`pronto`/`parcial`), the chain, the test-note

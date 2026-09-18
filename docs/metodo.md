@@ -13,6 +13,22 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
    só escolhe entre elas.
 1. **Alvo = o disco, lido em cada frequência harmônica** — `tone_builder/target.py`.
    A pista separada só localiza onde a guitarra toca e qual é a nota.
+   `--from M:SS --to M:SS` limita o alvo aos ataques dentro da janela; `--role rhythm|solo`
+   escolhe a pista separada de cada guitarra (tone-analyzer).
+1b. **Acorde** — `tone_builder/target.py`, `tone_builder/chords.py`. Ataque de 2+ notas na pista
+   separada (`detect_chords`, detector padrão `salience`; `--chord-detector`, `--no-chords`
+   desliga) vira entrada `kind: chord`, lida no disco em `k·f0` de cada nota (k = 1..16). Sai
+   toda frequência a menos de 2,4 % de outra de nota diferente (dono ambíguo). Mesmos portões:
+   destaque ≥ 13 dB, ≥ 5 frequências aceitas.
+   - **Conjunto sem oitavas**: o detector não reporta dobra exata de oitava; "conjunto certo"
+     compara `reduce(detectado)` com `reduce(verdade)` (sai toda nota com outra 12/24/36 abaixo).
+     Porque o espectro da oitava é subconjunto do da nota de baixo: não há frequência que só ela
+     tenha. As dobras são decididas pelo DI, não pelo detector.
+   - **DI do acorde**: todo voicing tocável da biblioteca (uma nota por corda, casas dentro de 4,
+     até 32 voicings, dobras de oitava enumeradas), somado nota a nota alinhado pelo ataque, e os
+     acordes gravados com `library record-chord` que tenham o mesmo conjunto. Cada um é
+     renderizado com o amp da pesquisa e medido; fica o de menor desvio, e o relatório diz de onde
+     veio. Uma nota no ataque de um acorde é esse acorde (sai da lista de notas, contada).
 2. **Unidade de comparação = uma nota inteira**, 0,6 s a partir do ataque, dos dois lados.
 3. **Harmônico entra no alvo com destaque ≥ 13 dB** sobre a vizinhança; nota entra com ≥ 5.
 4. **Mesma nota dos dois lados**: a nota do disco contra a mesma nota da biblioteca da guitarra,
@@ -51,6 +67,31 @@ Two-Rock, chain final de *Gravity*):
 Com 13 dB, fundo sintético: erro 0,70–1,04 dB e zero falso positivo. Fundo real de *Gravity*: erro
 0,76–1,87 dB e 0–2 picos de outro instrumento por combinação. O "1,84 dB, zero falso positivo"
 anotado antes vinha de uma guitarra só. Dados: `docs/superpowers/plans/2026-09-16-etapa3-*.json`.
+
+### Acordes (`tone-builder validate --chords`)
+
+Acordes montados com notas da biblioteca (power chord de 2 e 3 notas, tríades maiores e menores
+em forma de E e de A, raízes E2..E3), cordas espalhadas 0–30 ms, detecção na guitarra + resíduo
+rosa 20 dB abaixo (a pista separada), nível lido na mistura com o fundo sintético. Critério a
+−6 dB: conjunto certo ≥ 90 %, zero nota falsa, erro de nível ≤ 2 dB.
+
+**Não passou** — PRS SE Silver Sky pos5, 18/09/2026:
+
+| detector | dominância | acordes | conjunto certo | notas falsas | erro | falso positivo |
+|---|---|---|---|---|---|---|
+| salience | −6 dB | 78 | **61,5 %** | **31** | 1,59 dB | 0 |
+| salience | −3 dB | 78 | 61,5 % | 31 | 1,40 dB | 0 |
+| salience | 0 dB | 78 | 61,5 % | 31 | 1,09 dB | 0 |
+| salience | +6 dB | 78 | 61,5 % | 31 | 0,77 dB | 0 |
+| basic-pitch | — | — | não medido (não instalado) | — | — | — |
+
+O nível passa (≤ 2 dB, zero falso positivo); a detecção não. Conjunto e notas falsas não mudam com
+a dominância porque a detecção roda na pista separada, não na mistura. 26 das 31 notas falsas são
+alturas de corda solta (D3 ×8, A2 ×6, B3 ×6, G3 ×4, E2 ×2) — provável ressonância simpática nas
+amostras reais, ainda não medida. Por forma: power2 9/13, power3 9/13, maior-E 7/13, menor-E 6/13,
+maior-A 9/13, menor-A 8/13. Somado × gravado: 0 pares (nenhum acorde gravado ainda). O padrão
+continua `salience` por ser o único medido; o teste `test_chord_known_truth_on_the_shipped_library`
+está `xfail(strict=True)` até passar.
 
 ## Quanto cada variável pesa (Gravity, 16/09)
 
