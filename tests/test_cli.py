@@ -198,7 +198,7 @@ def test_record_listens_by_default_and_ends_when_the_string_is_complete(tmp_path
     monkeypatch.setattr(recorder, "live_blocks", lambda device, channel: _blocks(take, recorder.SR))
     assert cli.main(["library", "record", "g", "pos1", "1", "--device", "x", "--channel", "1", "--root", str(tmp_path)]) == 0
     out = capsys.readouterr().out
-    assert "ok  c1-64-E4" in out and "(0 to go)" in out
+    assert "ok  fret  0  c1-64-E4" in out and "(0 to go)" in out
 
 
 def test_record_all_skips_the_strings_that_are_already_complete(tmp_path: Path, capsys, monkeypatch):

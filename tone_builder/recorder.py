@@ -210,7 +210,7 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
     if len(have) < len(expected):                # a string half done: only what it lacks is waited for
         state.update({m: None for m in have})
         if have:
-            say(f"already in: {len(have)}; waiting for {[m for m in expected if m not in have]}")
+            say(f"already in: {len(have)}; waiting for fret(s) {[m - expected[0] for m in expected if m not in have]}")
     # the neighbour strings share 11 of the 16 notes: only a note this string does not have gives a wrong string away
     foreign = [m for m in range(expected[0] - 5, expected[-1] + 6) if m not in expected]
     strangers: list[int] = []
@@ -248,8 +248,9 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
             state[midi] = None if entry["accepted"] else entry["reasons"]
             name = library.note_filename(string, midi)[:-4]
             to_go = sum(1 for m in expected if state.get(m, []) is not None)
-            say(f"ok  {name}   ({to_go} to go)" if entry["accepted"]
-                else f"NO  {name}: {', '.join(entry['reasons'])} - play it again")
+            fret = midi - expected[0]
+            say(f"ok  fret {fret:2d}  {name}   ({to_go} to go)" if entry["accepted"]
+                else f"NO  fret {fret:2d}  {name}: {', '.join(entry['reasons'])} - play it again")
             settled = end
         if settled:
             library.write_yaml(med_path, med)
