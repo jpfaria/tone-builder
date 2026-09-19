@@ -166,3 +166,15 @@ def test_listen_string_gives_up_after_a_long_silence_and_says_what_is_missing(tm
     report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=lambda _: None)
     assert report["accepted"] == [64, 65]
     assert report["missing"] == list(range(66, 80))
+
+
+def test_listen_string_says_so_at_once_when_the_input_carries_no_signal(tmp_path: Path):
+    # 19/09/2026: the guitar was on another input; three strings timed out in silence (-100 dBFS) without a word
+    sr = 48000
+    heard: list[str] = []
+    x = np.full(60 * sr, 1e-5, dtype=np.float32)
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
+    assert report["no_signal"] is True
+    assert any("no signal" in line for line in heard)
+    raw = sf.read(tmp_path / "g" / "pos1" / "_takes" / "c1.wav")[0]
+    assert len(raw) <= 6 * sr

@@ -179,6 +179,7 @@ def save_string(root: Path, guitar: str, position: str, string: int, signal: np.
 
 IDLE_S = 12.0        # silence after the last attack that ends the session with notes still missing
 FIRST_NOTE_S = 30.0  # time to get to the guitar before the first note
+DEAD_S, DEAD_PEAK = 5.0, 10 ** (-80 / 20)   # a plugged guitar idles near -64 dBFS; an empty input reads -100
 KEEP_S = 0.3         # audio kept before the next window: the attack detector needs the rise, the noise read its silence
 
 
@@ -194,6 +195,7 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
     buf = np.zeros(0, dtype=np.float32)
     done = 0                                     # samples of buf already settled
     last_attack = 0
+    dead = False
     for block in blocks:
         buf = np.concatenate([buf, np.asarray(block, dtype=np.float32)])
         window = buf[done:]
@@ -217,13 +219,18 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
             done += max(0, settled - int(KEEP_S * sr))
         if all(state.get(m, []) is None for m in expected):
             break
+        if len(buf) >= int(DEAD_S * sr) and float(np.abs(buf).max()) < DEAD_PEAK:
+            say(f"no signal on this input (peak {20 * np.log10(float(np.abs(buf).max()) + 1e-12):.0f} dBFS): "
+                "is the guitar on this channel?")
+            dead = True
+            break
         if (len(buf) - last_attack) / sr > (IDLE_S if state else FIRST_NOTE_S):
             break
     sf.write(pos_dir / "_takes" / f"c{string}.wav", buf, sr, subtype="FLOAT")
     library.write_yaml(med_path, med)
     return {"accepted": [m for m in expected if m in state and state[m] is None],
             "rejected": {m: state[m] for m in expected if state.get(m)},
-            "missing": [m for m in expected if m not in state]}
+            "missing": [m for m in expected if m not in state], **({"no_signal": True} if dead else {})}
 
 
 def save_chord(root: Path, guitar: str, position: str, voicing: list[tuple[int, int]],

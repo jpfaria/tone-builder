@@ -102,6 +102,8 @@ def _record(a) -> int:
         print(f"rejected: {rep['rejected']}")
         print(f"missing:  {rep['missing']}", flush=True)
         bad = bad or bool(rep["rejected"] or rep["missing"])
+        if rep.get("no_signal"):
+            break   # the other strings would time out the same way
     return 1 if bad else 0
 
 
