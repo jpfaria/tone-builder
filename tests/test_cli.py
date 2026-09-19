@@ -199,3 +199,20 @@ def test_record_listens_by_default_and_ends_when_the_string_is_complete(tmp_path
     assert cli.main(["library", "record", "g", "pos1", "1", "--device", "x", "--channel", "1", "--root", str(tmp_path)]) == 0
     out = capsys.readouterr().out
     assert "ok  c1-64-E4" in out and "(0 to go)" in out
+
+
+def test_record_all_skips_the_strings_that_are_already_complete(tmp_path: Path, capsys, monkeypatch):
+    from tests.test_recorder import _blocks, _string_take
+    from tone_builder import recorder
+
+    def full(string):
+        return np.concatenate([_string_take(library.expected_midis(string), recorder.SR),
+                               np.zeros(40 * recorder.SR, dtype=np.float32)])
+
+    recorder.listen_string(tmp_path, "g", "p", 6, _blocks(full(6), recorder.SR), recorder.SR, say=lambda _: None)
+    order = iter([5, 4, 3, 2, 1])
+    monkeypatch.setattr(recorder, "live_blocks", lambda device, channel: _blocks(full(next(order)), recorder.SR))
+    assert cli.main(["library", "record", "g", "p", "all", "--device", "x", "--channel", "1", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "string 6: complete" in out and "string 5: play" in out
+    assert len(library.list_notes(tmp_path, "g", "p")) == 96

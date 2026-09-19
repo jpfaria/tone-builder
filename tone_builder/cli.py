@@ -89,6 +89,12 @@ def _record(a) -> int:
     strings = [6, 5, 4, 3, 2, 1] if a.string == "all" else [int(a.string)]
     bad = False
     for string in strings:   # each string is its own take: the same pitch exists on more than one string
+        if a.string == "all" and a.seconds is None:
+            pos_dir = _root(a) / a.guitar / a.position
+            med = library.read_yaml(pos_dir / "medicao.yaml") if (pos_dir / "medicao.yaml").exists() else {}
+            if len(recorder.notes_in(pos_dir, med, string)) == 16:
+                print(f"string {string}: complete, skipped (record it alone to redo it)", flush=True)
+                continue
         if a.seconds is None:   # listens: names each note as it lands, ends when the string is complete
             print(f"string {string}: play after the beep, any order; a wrong note is played again", flush=True)
             for _ in range(3):   # a take on the wrong string is thrown away and the same string asked again
