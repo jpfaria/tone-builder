@@ -65,6 +65,9 @@ def save_string(root: Path, guitar: str, position: str, string: int, signal: np.
     med_path = pos_dir / "medicao.yaml"
     med = library.read_yaml(med_path) if med_path.exists() else {}
     report: dict = {"accepted": [], "rejected": {}, "missing": []}
+    takes = pos_dir / "_takes"   # the raw take: a missing note cannot be diagnosed without it
+    takes.mkdir(exist_ok=True)
+    sf.write(takes / f"c{string}.wav", signal, sr, subtype="FLOAT")
     cuts = cut_notes(signal, sr, expected)
     for midi in expected:
         if midi not in cuts:

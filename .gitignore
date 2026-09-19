@@ -5,3 +5,4 @@ __pycache__/
 *-bruto.wav
 bruto/
 .solvers/
+biblioteca/**/_takes/

@@ -74,3 +74,12 @@ def test_save_string_accepts_good_rejects_clipped(tmp_path: Path):
     med = library.read_yaml(tmp_path / "g" / "pos5" / "medicao.yaml")
     assert med["c1-65-F4"]["accepted"] is False
     assert med["c1-64-E4"]["accepted"] is True
+
+
+def test_save_string_keeps_the_raw_take_so_a_missing_note_can_be_diagnosed(tmp_path: Path):
+    sr = 48000
+    x = _string_take([64, 66], sr)
+    recorder.save_string(tmp_path, "g", "pos5", 1, x, sr)
+    raw = tmp_path / "g" / "pos5" / "_takes" / "c1.wav"
+    assert raw.exists()
+    assert [p.name for p in library.list_notes(tmp_path, "g", "pos5")] == ["c1-64-E4.wav", "c1-66-F#4.wav"]
