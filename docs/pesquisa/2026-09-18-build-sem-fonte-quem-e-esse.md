@@ -48,3 +48,20 @@ guitarra a energia afinada dos outros instrumentos: a medida é circular.
    drive embutido quando `single_drive` está em `not_found`).
 2. A prova de verdade conhecida precisa de um caso com fundo harmonicamente relacionado.
 3. `linearity` de cada captura escolhida deveria ir para o relatório.
+
+## Quinta hipótese: captador da ponte (19/09/2026) — refutada
+
+Gravada a posição 1 (ponte) da PRS, 96 notas. Mesmo alvo (101 notas da gravação), mesmas seis cadeias,
+desvio em dB (`~/.tone-builder/quem-e-esse-samuel-lima/medicoes/ponte-vs-braco/`):
+
+| cadeia | braço (pos5) | ponte (pos1) |
+|---|---|---|
+| AC30 limpo n vol3 (aprovado de ouvido) | 12,20 | 13,09 |
+| Twin limpo | 13,06 | 14,31 |
+| Deluxe 65 limpo | 10,38 | 12,55 |
+| Bassman 71 ts9_ds1_boost (escolha do build) | 7,52 | 8,71 |
+| Bassman ts9_ds1 | 7,55 | 8,64 |
+| AC30 n vol8 cut10 | 7,74 | 8,54 |
+
+A ponte piora todas as cadeias em cerca de 1 dB e não muda a ordem: amp limpo com ponte (12,6 no melhor caso)
+continua longe de amp com drive com braço (7,5). O captador não explica a preferência por drive.
