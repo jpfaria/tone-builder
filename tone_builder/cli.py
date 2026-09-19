@@ -57,7 +57,7 @@ def _check(a) -> int:
         x, sr = sf.read(path, dtype="float32", always_2d=False)
         if x.ndim == 2:
             x = x.T
-        entry = recorder.measure_and_judge(x, sr, midi)
+        entry = recorder.measure_and_judge(x, sr, midi, (med.get(path.stem) or {}).get("snr_db"))
         med[path.stem] = entry
         if entry["accepted"]:
             print(f"ok       {path.stem}")

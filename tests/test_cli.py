@@ -157,3 +157,14 @@ def test_build_asks_tone_analyzer_for_a_song_that_is_not_in_its_library(tmp_path
     assert rc == 5
     assert seen == [(disc, "Nobody", "Nothing Here Zzz", "guitars")]
     assert "demucs not found" in capsys.readouterr().err
+
+
+def test_check_keeps_the_noise_read_at_recording_when_the_saved_note_has_no_room_for_it(tmp_path: Path, capsys):
+    # a note saved with its attack inside the first 10 ms: the file holds no silence to read a noise floor from
+    sr = 48000
+    pos = tmp_path / "g" / "pos1"
+    pos.mkdir(parents=True)
+    sf.write(pos / library.note_filename(1, 64), _note(64, sr, 1.0), sr, subtype="FLOAT")
+    library.write_yaml(pos / "medicao.yaml", {"c1-64-E4": {"midi": 64, "snr_db": 24.0, "accepted": True, "reasons": []}})
+    assert cli.main(["library", "check", "g", "pos1", "--root", str(tmp_path)]) == 0
+    assert library.read_yaml(pos / "medicao.yaml")["c1-64-E4"]["snr_db"] == 24.0

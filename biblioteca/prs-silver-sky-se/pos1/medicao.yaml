@@ -386,11 +386,10 @@ c3-58-A#3:
   midi: 58
   duration_s: 1.6626666666666667
   saturated_samples: 0
-  snr_db: null
+  snr_db: 26.09435155973423
   peak_db: -15.762927496702158
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c3-59-B3:
   midi: 59
   duration_s: 1.7266666666666666
@@ -403,11 +402,10 @@ c3-60-C4:
   midi: 60
   duration_s: 1.684
   saturated_samples: 0
-  snr_db: null
+  snr_db: 20.271973378341528
   peak_db: -13.814980652020365
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c3-61-C#4:
   midi: 61
   duration_s: 1.6626666666666667
@@ -420,20 +418,18 @@ c3-62-D4:
   midi: 62
   duration_s: 1.6413333333333333
   saturated_samples: 0
-  snr_db: null
+  snr_db: 24.08903929614442
   peak_db: -16.092361447518005
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c3-63-D#4:
   midi: 63
   duration_s: 1.7266666666666666
   saturated_samples: 0
-  snr_db: null
+  snr_db: 28.275166988684298
   peak_db: -15.295431008791411
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c3-64-E4:
   midi: 64
   duration_s: 1.6626666666666667
@@ -454,11 +450,10 @@ c3-66-F#4:
   midi: 66
   duration_s: 1.62
   saturated_samples: 0
-  snr_db: null
+  snr_db: 27.414700387794568
   peak_db: -14.349454652894941
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c3-67-G4:
   midi: 67
   duration_s: 1.556
@@ -543,11 +538,10 @@ c2-63-D#4:
   midi: 63
   duration_s: 1.6413333333333333
   saturated_samples: 0
-  snr_db: null
+  snr_db: 27.976080535398182
   peak_db: -19.208339632026945
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c2-64-E4:
   midi: 64
   duration_s: 1.8333333333333333
@@ -624,11 +618,10 @@ c2-73-C#5:
   midi: 73
   duration_s: 1.428
   saturated_samples: 0
-  snr_db: null
+  snr_db: 30.743229317600083
   peak_db: -18.202673092599618
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c2-74-D5:
   midi: 74
   duration_s: 2.02
@@ -681,11 +674,10 @@ c1-69-A4:
   midi: 69
   duration_s: 1.6413333333333333
   saturated_samples: 0
-  snr_db: null
+  snr_db: 12.985338050948208
   peak_db: -18.94048350232159
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c1-70-A#4:
   midi: 70
   duration_s: 1.5346666666666666
@@ -746,11 +738,10 @@ c1-78-F#5:
   midi: 78
   duration_s: 1.6626666666666667
   saturated_samples: 0
-  snr_db: null
+  snr_db: 38.7935053465079
   peak_db: -17.81668430875663
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c1-75-D#5:
   midi: 75
   duration_s: 1.5133333333333334
@@ -763,11 +754,10 @@ c1-79-G5:
   midi: 79
   duration_s: 2.02
   saturated_samples: 0
-  snr_db: null
+  snr_db: 32.32629258352179
   peak_db: -16.1562863383069
-  accepted: false
-  reasons:
-  - snr
+  accepted: true
+  reasons: []
 c6-50-D3:
   midi: 50
   duration_s: 3.3053333333333335

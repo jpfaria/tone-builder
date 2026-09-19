@@ -92,8 +92,11 @@ def cut_notes(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, np.
     return {m: _piece(signal, sr, sp, PREROLL_S) for m, sp in note_spans(signal, sr, expected).items()}
 
 
-def measure_and_judge(piece: np.ndarray, sr: int, midi: int) -> dict:
+def measure_and_judge(piece: np.ndarray, sr: int, midi: int, recorded_snr_db: float | None = None) -> dict:
+    """`recorded_snr_db`: the noise read on the take; a saved note keeps 20 ms of pre-roll, too little to read it again."""
     metrics = take_metrics(piece, sr)
+    if metrics["snr_db"] is None and recorded_snr_db is not None:
+        metrics = {**metrics, "snr_db": recorded_snr_db}
     if metrics["midi"] is not None and midi - metrics["midi"] in SUBHARMONICS:
         metrics = {**metrics, "midi": midi}   # the single middle frame slipped to a subharmonic; note_spans named it
     return {**{k: metrics[k] for k in _METRIC_KEYS}, **judge_take(metrics, midi)}
