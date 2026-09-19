@@ -5,6 +5,8 @@ tuning: standard                   # 96/96 notes measure the pitch standard tuni
 selector_positions:                # 3-way toggle + one coil mini-toggle per pickup
   bridge-hb: bridge, humbucker (mini-toggle not split)
   neck-hb: neck, humbucker (mini-toggle not split)
+  neck-split: neck, mini-toggle split (single coil)
 recorded:
   bridge-hb: "2026-09-19"
   neck-hb: "2026-09-19"
+  neck-split: "2026-09-19"
