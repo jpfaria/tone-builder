@@ -95,3 +95,8 @@ quando as 16 notas da corda entraram (ou após 12 s sem ataque) e aceita a nota 
 mesma sessão. Invariante medida: uma nota só fecha pelo tempo (2 s) se não houver um ataque recente demais
 para ser nomeado dentro dela; sem isso a janela avançava por cima do ataque seguinte e perdia 1 a 4 notas
 por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 16 em 16.
+- Primeira sessão real por detecção (Paul's Guitar, braço): nota tocada por cima do som da anterior não era
+  medida (os 150 ms antes do ataque continham a nota anterior, o início da tomada caía nela e não saía nem
+  altura nem ruído) — o corte curto de 20 ms decide nesse caso; e um ruído de manuseio no fim, nomeado como
+  nota já aceita, rebaixava a nota aceita — uma tomada pior nunca substitui a aceita. 94 de 96 na primeira
+  passada; as duas que faltaram não foram tocadas de forma legível (corda solta colada no bipe, casa 15 pulada).

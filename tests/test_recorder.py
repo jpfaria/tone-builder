@@ -178,3 +178,22 @@ def test_listen_string_says_so_at_once_when_the_input_carries_no_signal(tmp_path
     assert any("no signal" in line for line in heard)
     raw = sf.read(tmp_path / "g" / "pos1" / "_takes" / "c1.wav")[0]
     assert len(raw) <= 6 * sr
+
+
+def test_a_note_played_over_the_ring_of_the_one_before_is_still_measured(tmp_path: Path):
+    # 19/09/2026, string 5 fret 13: the 150 ms read before the attack held the previous note, louder than 10 % of
+    # this one's peak, so the take's onset landed on it and neither pitch nor noise could be read
+    x, sr = sf.read(Path(__file__).parent / "data" / "c5-neck-take.flac", dtype="float32")
+    report = recorder.save_string(tmp_path, "g", "p", 5, x, sr)
+    assert 58 in report["accepted"]
+
+
+def test_listen_string_keeps_an_accepted_note_when_a_later_noise_is_named_after_it(tmp_path: Path):
+    sr = 48000
+    good = _string_take([64], sr)
+    noise = _note(64, sr, 1.5, gain=3.0).clip(-1, 1)             # the same note again, clipped: rejected
+    x = np.concatenate([good, noise, np.zeros(30 * sr, dtype=np.float32)])
+    heard: list[str] = []
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
+    assert 64 in report["accepted"]
+    assert library.read_yaml(tmp_path / "g" / "pos1" / "medicao.yaml")["c1-64-E4"]["accepted"] is True

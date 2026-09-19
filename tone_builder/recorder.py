@@ -143,8 +143,15 @@ def measure_and_judge(piece: np.ndarray, sr: int, midi: int, recorded_snr_db: fl
 def _save_note(pos_dir: Path, med: dict, string: int, midi: int, signal: np.ndarray,
                span: tuple[int, int], sr: int) -> dict:
     """Judge one note of a take and, accepted, write it. Returns its measurement entry."""
+    # the long pre-roll reads the noise before the attack; played over the ring of the note before, that stretch
+    # holds a note instead, the take's onset lands on it and nothing can be read: the short pre-roll then decides
     entry = measure_and_judge(_piece(signal, sr, span, METRIC_PREROLL_S), sr, midi)
+    if not entry["accepted"]:
+        short = measure_and_judge(_piece(signal, sr, span, PREROLL_S), sr, midi)
+        entry = short if short["accepted"] else entry
     name = library.note_filename(string, midi)
+    if not entry["accepted"] and (med.get(name[:-4]) or {}).get("accepted") and (pos_dir / name).exists():
+        return entry   # a worse take never replaces the accepted one on disk
     med[name[:-4]] = entry
     if entry["accepted"]:
         sf.write(pos_dir / name, _piece(signal, sr, span, PREROLL_S), sr, subtype="FLOAT")
@@ -208,6 +215,9 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
             if any(a < p < end for p in pending):
                 break                            # an attack too recent to be named may be where this note ends
             entry = _save_note(pos_dir, med, string, midi, window, (a, end), sr)
+            if not entry["accepted"] and midi in state and state[midi] is None:
+                settled = end
+                continue                         # already in: a later noise named after it changes nothing
             state[midi] = None if entry["accepted"] else entry["reasons"]
             name = library.note_filename(string, midi)[:-4]
             to_go = sum(1 for m in expected if state.get(m, []) is not None)
