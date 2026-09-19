@@ -218,3 +218,17 @@ def test_a_dead_input_does_not_overwrite_the_raw_take_kept_from_before(tmp_path:
     before = (tmp_path / "g" / "pos1" / "_takes" / "c1.wav").stat().st_size
     recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(np.full(30 * sr, 1e-5, dtype=np.float32), sr), sr, say=lambda _: None)
     assert (tmp_path / "g" / "pos1" / "_takes" / "c1.wav").stat().st_size == before
+
+
+def test_listen_string_notices_the_wrong_string_and_keeps_nothing_of_it(tmp_path: Path):
+    # 19/09/2026: string 3 played during string 4's take. 11 of its notes exist on string 4 too and were saved
+    # under string 4; only the notes string 4 does not have (66-70) give the mistake away
+    sr = 48000
+    recorder.listen_string(tmp_path, "g", "p", 4, _blocks(_string_take([50], sr), sr), sr, say=lambda _: None)
+    x = np.concatenate([_string_take(library.expected_midis(3), sr), np.zeros(30 * sr, dtype=np.float32)])
+    heard: list[str] = []
+    report = recorder.listen_string(tmp_path, "g", "p", 4, _blocks(x, sr), sr, say=heard.append)
+    assert report["wrong_string"] is True
+    assert any("wrong string" in line for line in heard)
+    assert [p.name for p in library.list_notes(tmp_path, "g", "p")] == ["c4-50-D3.wav"]   # what was there stays
+    assert list(library.read_yaml(tmp_path / "g" / "p" / "medicao.yaml")) == ["c4-50-D3"]

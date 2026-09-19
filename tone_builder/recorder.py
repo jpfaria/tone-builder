@@ -205,6 +205,11 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
         state.update({m: None for m in have})
         if have:
             say(f"already in: {len(have)}; waiting for {[m for m in expected if m not in have]}")
+    # the neighbour strings share 11 of the 16 notes: only a note this string does not have gives a wrong string away
+    foreign = [m for m in range(expected[0] - 5, expected[-1] + 6) if m not in expected]
+    strangers: list[int] = []
+    undo: dict[str, tuple[bytes | None, dict | None]] = {}   # what each note was before this session touched it
+    wrong = False
     heard_any = False
     buf = np.zeros(0, dtype=np.float32)
     done = 0                                     # samples of buf already settled
@@ -214,7 +219,7 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
         buf = np.concatenate([buf, np.asarray(block, dtype=np.float32)])
         window = buf[done:]
         settled = 0
-        found, pending = _named_attacks(window, sr, expected)
+        found, pending = _named_attacks(window, sr, expected + foreign)
         for midi, a, end in _spans_of(found, len(window), sr):
             last_attack = max(last_attack, done + a)
             heard_any = True
@@ -222,6 +227,14 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
                 break                            # still ringing: wait for more audio
             if any(a < p < end for p in pending):
                 break                            # an attack too recent to be named may be where this note ends
+            if midi in foreign:
+                strangers.append(midi)
+                settled = end
+                continue
+            name = library.note_filename(string, midi)
+            if name not in undo:
+                undo[name] = ((pos_dir / name).read_bytes() if (pos_dir / name).exists() else None,
+                              med.get(name[:-4]))
             entry = _save_note(pos_dir, med, string, midi, window, (a, end), sr)
             if not entry["accepted"] and midi in state and state[midi] is None:
                 settled = end
@@ -235,6 +248,18 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
         if settled:
             library.write_yaml(med_path, med)
             done += max(0, settled - int(KEEP_S * sr))
+        if len(set(strangers)) >= 2:
+            say(f"wrong string? heard {sorted(set(strangers))}, which string {string} does not have "
+                f"(it goes from {expected[0]} to {expected[-1]}); nothing of this take was kept")
+            for name, (audio, entry) in undo.items():
+                (pos_dir / name).unlink(missing_ok=True)
+                med.pop(name[:-4], None)
+                if audio is not None:
+                    (pos_dir / name).write_bytes(audio)
+                if entry is not None:
+                    med[name[:-4]] = entry
+            wrong = True
+            break
         if all(state.get(m, []) is None for m in expected):
             break
         if len(buf) >= int(DEAD_S * sr) and float(np.abs(buf).max()) < DEAD_PEAK:
@@ -244,12 +269,16 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
             break
         if (len(buf) - last_attack) / sr > (IDLE_S if heard_any else FIRST_NOTE_S):
             break
-    if not dead:
+    if wrong:
+        state = {m: None for m in have} if len(have) < len(expected) else {}
+        sf.write(pos_dir / "_takes" / f"c{string}-wrong-string.wav", buf, sr, subtype="FLOAT")
+    elif not dead:
         sf.write(pos_dir / "_takes" / f"c{string}.wav", buf, sr, subtype="FLOAT")
     library.write_yaml(med_path, med)
     return {"accepted": [m for m in expected if m in state and state[m] is None],
             "rejected": {m: state[m] for m in expected if state.get(m)},
-            "missing": [m for m in expected if m not in state], **({"no_signal": True} if dead else {})}
+            "missing": [m for m in expected if m not in state], **({"no_signal": True} if dead else {}),
+            **({"wrong_string": True} if wrong else {})}
 
 
 def save_chord(root: Path, guitar: str, position: str, voicing: list[tuple[int, int]],

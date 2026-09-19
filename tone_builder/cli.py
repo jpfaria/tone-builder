@@ -91,9 +91,13 @@ def _record(a) -> int:
     for string in strings:   # each string is its own take: the same pitch exists on more than one string
         if a.seconds is None:   # listens: names each note as it lands, ends when the string is complete
             print(f"string {string}: play after the beep, any order; a wrong note is played again", flush=True)
-            rep = recorder.listen_string(_root(a), a.guitar, a.position, string,
-                                         recorder.live_blocks(a.device, a.channel), recorder.SR,
-                                         say=lambda line: print(line, flush=True))
+            for _ in range(3):   # a take on the wrong string is thrown away and the same string asked again
+                rep = recorder.listen_string(_root(a), a.guitar, a.position, string,
+                                             recorder.live_blocks(a.device, a.channel), recorder.SR,
+                                             say=lambda line: print(line, flush=True))
+                if not rep.get("wrong_string"):
+                    break
+                print(f"string {string} again: play after the beep", flush=True)
         else:
             print(f"string {string}: play after the beep ({a.seconds:.0f} s)", flush=True)
             x = recorder.record(a.seconds, a.device, a.channel)

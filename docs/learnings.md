@@ -100,3 +100,8 @@ por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 1
   altura nem ruído) — o corte curto de 20 ms decide nesse caso; e um ruído de manuseio no fim, nomeado como
   nota já aceita, rebaixava a nota aceita — uma tomada pior nunca substitui a aceita. 94 de 96 na primeira
   passada; as duas que faltaram não foram tocadas de forma legível (corda solta colada no bipe, casa 15 pulada).
+- Corda errada (19/09, ponte com split): a 3ª foi tocada na vez da 4ª e o erro se propagou por três cordas;
+  11 das 16 notas de uma corda existem na vizinha, então foram salvas com o nome da corda errada. Só a nota
+  que a corda não tem denuncia: duas notas fora da faixa da corda (até 5 semitons abaixo ou acima) → a tomada
+  inteira é desfeita, o áudio vai para `_takes/c<n>-wrong-string.wav` e a mesma corda é pedida de novo.
+  22 tomadas reais sem alarme falso; as três tomadas erradas foram pegas.
