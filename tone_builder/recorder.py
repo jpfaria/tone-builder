@@ -24,7 +24,7 @@ MIN_ESTIMATES = 6
 # 17 of 21 frames of fret 11, and f/3 then f/2 on fret 15. The recorder knows which notes the string holds, so a
 # frame reading 12, 19 or 24 semitones under an expected note counts for that note.
 SUBHARMONICS = (12, 19, 24)
-BEEP_S = 0.15
+BEEP_S = 0.5   # 0.15 s went unnoticed on a real session (19/09/2026)
 CHORD_TAKE_S = 2.0
 CHORD_PREROLL_S = 0.05   # a chord's own onset detector needs >2 blocks (~43ms) of true silence before the attack
 CHORD_MIN_SEP_S = 1.0    # a note ending abruptly mid-chord can look like a second attack; keep only real strums
