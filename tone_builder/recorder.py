@@ -199,6 +199,13 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
     expected = library.expected_midis(string)
     pos_dir, med_path, med = _open_position(root, guitar, position)
     state: dict[int, list[str] | None] = {}      # midi -> None when accepted, else the reasons of its last try
+    have = [m for m in expected if (med.get(library.note_filename(string, m)[:-4]) or {}).get("accepted")
+            and (pos_dir / library.note_filename(string, m)).exists()]
+    if len(have) < len(expected):                # a string half done: only what it lacks is waited for
+        state.update({m: None for m in have})
+        if have:
+            say(f"already in: {len(have)}; waiting for {[m for m in expected if m not in have]}")
+    heard_any = False
     buf = np.zeros(0, dtype=np.float32)
     done = 0                                     # samples of buf already settled
     last_attack = 0
@@ -210,6 +217,7 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
         found, pending = _named_attacks(window, sr, expected)
         for midi, a, end in _spans_of(found, len(window), sr):
             last_attack = max(last_attack, done + a)
+            heard_any = True
             if end == len(window) and len(window) - a < int(RING_S * sr):
                 break                            # still ringing: wait for more audio
             if any(a < p < end for p in pending):
@@ -234,9 +242,10 @@ def listen_string(root: Path, guitar: str, position: str, string: int, blocks, s
                 "is the guitar on this channel?")
             dead = True
             break
-        if (len(buf) - last_attack) / sr > (IDLE_S if state else FIRST_NOTE_S):
+        if (len(buf) - last_attack) / sr > (IDLE_S if heard_any else FIRST_NOTE_S):
             break
-    sf.write(pos_dir / "_takes" / f"c{string}.wav", buf, sr, subtype="FLOAT")
+    if not dead:
+        sf.write(pos_dir / "_takes" / f"c{string}.wav", buf, sr, subtype="FLOAT")
     library.write_yaml(med_path, med)
     return {"accepted": [m for m in expected if m in state and state[m] is None],
             "rejected": {m: state[m] for m in expected if state.get(m)},

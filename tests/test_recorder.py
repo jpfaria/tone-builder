@@ -176,8 +176,7 @@ def test_listen_string_says_so_at_once_when_the_input_carries_no_signal(tmp_path
     report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
     assert report["no_signal"] is True
     assert any("no signal" in line for line in heard)
-    raw = sf.read(tmp_path / "g" / "pos1" / "_takes" / "c1.wav")[0]
-    assert len(raw) <= 6 * sr
+    assert not (tmp_path / "g" / "pos1" / "_takes" / "c1.wav").exists()   # nothing worth keeping
 
 
 def test_a_note_played_over_the_ring_of_the_one_before_is_still_measured(tmp_path: Path):
@@ -197,3 +196,25 @@ def test_listen_string_keeps_an_accepted_note_when_a_later_noise_is_named_after_
     report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
     assert 64 in report["accepted"]
     assert library.read_yaml(tmp_path / "g" / "pos1" / "medicao.yaml")["c1-64-E4"]["accepted"] is True
+
+
+def test_listen_string_only_waits_for_the_notes_the_string_still_lacks(tmp_path: Path):
+    sr = 48000
+    expected = library.expected_midis(1)
+    first = np.concatenate([_string_take(expected[1:], sr), np.zeros(20 * sr, dtype=np.float32)])   # open string not played
+    recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(first, sr), sr, say=lambda _: None)
+    again = np.concatenate([_string_take([64], sr), np.zeros(60 * sr, dtype=np.float32)])
+    heard: list[str] = []
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(again, sr), sr, say=heard.append)
+    assert report == {"accepted": expected, "rejected": {}, "missing": []}
+    assert "(0 to go)" in heard[-1]
+    raw = sf.read(tmp_path / "g" / "pos1" / "_takes" / "c1.wav")[0]
+    assert len(raw) < 10 * sr                                        # ended as soon as the missing note landed
+
+
+def test_a_dead_input_does_not_overwrite_the_raw_take_kept_from_before(tmp_path: Path):
+    sr = 48000
+    recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(_string_take([64, 65], sr), sr), sr, say=lambda _: None)
+    before = (tmp_path / "g" / "pos1" / "_takes" / "c1.wav").stat().st_size
+    recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(np.full(30 * sr, 1e-5, dtype=np.float32), sr), sr, say=lambda _: None)
+    assert (tmp_path / "g" / "pos1" / "_takes" / "c1.wav").stat().st_size == before
