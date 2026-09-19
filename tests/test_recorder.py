@@ -83,3 +83,26 @@ def test_save_string_keeps_the_raw_take_so_a_missing_note_can_be_diagnosed(tmp_p
     raw = tmp_path / "g" / "pos5" / "_takes" / "c1.wav"
     assert raw.exists()
     assert [p.name for p in library.list_notes(tmp_path, "g", "pos5")] == ["c1-64-E4.wav", "c1-66-F#4.wav"]
+
+
+def _real_take():
+    """A real string-3 take of a bridge pickup (19/09/2026), the one that showed both defects."""
+    import pytest
+    import soundfile as sf
+
+    p = Path(__file__).parent / "data" / "c3-bridge-take.flac"
+    if not p.exists():
+        pytest.skip("real take not present")
+    return sf.read(p, dtype="float32")
+
+
+def test_cut_notes_keeps_a_note_whose_attack_reads_an_octave_low():
+    # 19/09/2026: fret 2 of string 3 (A3=57) read 45 on its first 6 of 21 frames and the whole note was dropped
+    x, sr = _real_take()
+    assert 57 in recorder.cut_notes(x, sr, list(range(55, 71)))
+
+
+def test_save_string_measures_noise_even_when_the_cut_starts_on_the_attack(tmp_path: Path):
+    x, sr = _real_take()
+    report = recorder.save_string(tmp_path, "g", "pos1", 3, x, sr)
+    assert not [m for m, why in report["rejected"].items() if why == ["snr"]]

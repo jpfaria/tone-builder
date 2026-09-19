@@ -67,3 +67,16 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
 - **Also measured, in tone-analyzer (task 2b, synthetic strums):** staggered strums (0–30 ms) are found 59/60 exact with 0 false notes after the chord-onset fix; a second strum over a chord still ringing is found ~65 % of the time, and about half of those (34 of 65) read the wrong set — the 0.6 s window mixes the chord still ringing.
 - **Why it matters:** a chord target with an extra open-string note compares against a DI that lacks it; `build` still runs, but chord deviations are not yet trustworthy. The criterion (≥ 90 %, 0 false notes, ≤ 2 dB) was not loosened; `test_chord_known_truth_on_the_shipped_library` is `xfail(strict=True)` and will flip when it passes. basic-pitch was not measured (needs pipx, not installed here).
 - **Applies to:** any change to `detect_chords` or its thresholds → rerun `tone-builder validate --chords --guitar prs-silver-sky-se --position pos5`; real legato strumming (Even Flow's rhythm part) hits the "strum over ringing chord" weakness.
+
+## Gravador de corda: captador da ponte derrubava notas (19/09/2026)
+
+Na posição 1 da PRS cada tomada perdia duas ou três notas diferentes, sem erro de execução. Duas causas,
+achadas na tomada bruta (`_takes/c<corda>.wav`, que o gravador agora guarda):
+
+- O ataque da ponte lê uma oitava abaixo nos primeiros quadros (6 de 21 na casa 2 da 3ª corda). Com
+  `sustain_frac=0.75` o `detect_notes` descartava a nota inteira. O gravador chama com 0,6: as notas
+  esperadas da corda já filtram o resultado. O `pitch_autocorr` do tone-analyzer não foi tocado.
+- `snr_db` vinha vazio quando o corte começava a menos de 10 ms do ataque. O ruído agora é medido num
+  corte com 150 ms de pré-rolagem; a nota salva continua com 20 ms.
+
+A mesma tomada passou de 10 aceitas em 16 para 16 em 16 (`tests/data/c3-bridge-take.flac`).

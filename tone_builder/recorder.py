@@ -15,6 +15,9 @@ from tone_builder.chords import reduce_octaves
 
 SR = 48000
 PREROLL_S = 0.02
+METRIC_PREROLL_S = 0.15  # the noise floor is read before the attack; 20 ms of pre-roll leaves nothing to read
+SUSTAIN_FRAC = 0.6       # a bridge pickup reads an octave low on the attack frames (6 of 21 measured); the string's
+                         # expected notes already filter the result, so the detector can be more tolerant here
 BEEP_S = 0.15
 CHORD_TAKE_S = 2.0
 CHORD_PREROLL_S = 0.05   # a chord's own onset detector needs >2 blocks (~43ms) of true silence before the attack
@@ -40,17 +43,24 @@ def record(seconds: float, device, channel: int, sr: int = SR, playrec=None) -> 
     return np.asarray(rec)[:, 0]
 
 
-def cut_notes(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, np.ndarray]:
-    found = [n for n in detect_notes(signal, sr) if n["midi"] in expected]
-    cuts: dict[int, np.ndarray] = {}
+def note_spans(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, tuple[int, int]]:
+    """Attack and end sample of each expected note; the longest one when a note was played twice."""
+    found = [n for n in detect_notes(signal, sr, sustain_frac=SUSTAIN_FRAC) if n["midi"] in expected]
+    spans: dict[int, tuple[int, int]] = {}
     for i, n in enumerate(found):
-        start = max(0, int(round((n["start_s"] - PREROLL_S) * sr)))
         nxt = found[i + 1]["start_s"] if i + 1 < len(found) else n["start_s"] + 2.0
-        end = min(len(signal), int(round(nxt * sr)))
-        piece = signal[start:end]
-        if n["midi"] not in cuts or len(piece) > len(cuts[n["midi"]]):
-            cuts[n["midi"]] = piece
-    return cuts
+        span = (int(round(n["start_s"] * sr)), min(len(signal), int(round(nxt * sr))))
+        if n["midi"] not in spans or span[1] - span[0] > spans[n["midi"]][1] - spans[n["midi"]][0]:
+            spans[n["midi"]] = span
+    return spans
+
+
+def _piece(signal: np.ndarray, sr: int, span: tuple[int, int], preroll_s: float) -> np.ndarray:
+    return signal[max(0, span[0] - int(round(preroll_s * sr))):span[1]]
+
+
+def cut_notes(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, np.ndarray]:
+    return {m: _piece(signal, sr, sp, PREROLL_S) for m, sp in note_spans(signal, sr, expected).items()}
 
 
 def measure_and_judge(piece: np.ndarray, sr: int, midi: int) -> dict:
@@ -68,12 +78,13 @@ def save_string(root: Path, guitar: str, position: str, string: int, signal: np.
     takes = pos_dir / "_takes"   # the raw take: a missing note cannot be diagnosed without it
     takes.mkdir(exist_ok=True)
     sf.write(takes / f"c{string}.wav", signal, sr, subtype="FLOAT")
-    cuts = cut_notes(signal, sr, expected)
+    spans = note_spans(signal, sr, expected)
+    cuts = {m: _piece(signal, sr, sp, PREROLL_S) for m, sp in spans.items()}
     for midi in expected:
         if midi not in cuts:
             report["missing"].append(midi)
             continue
-        entry = measure_and_judge(cuts[midi], sr, midi)
+        entry = measure_and_judge(_piece(signal, sr, spans[midi], METRIC_PREROLL_S), sr, midi)
         name = library.note_filename(string, midi)
         med[name[:-4]] = entry
         if entry["accepted"]:
