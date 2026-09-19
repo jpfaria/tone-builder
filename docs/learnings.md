@@ -83,3 +83,6 @@ achadas na tomada bruta (`_takes/c<corda>.wav`, que o gravador agora guarda):
   corte com 150 ms de pré-rolagem; a nota salva continua com 20 ms.
 
 As mesmas tomadas passaram de 10 e 13 aceitas em 16 para 16 em 16 (`tests/data/c3-` e `c1-bridge-take.flac`).
+- O detector de ataques do tone-analyzer perdia o ataque que sobe em dois blocos (6ª corda, casas 1 e 11:
+  envelope 0,015 → 0,197 → 0,247). Corrigido lá (`note_onsets`), commit d06464e. Com as três correções as
+  quatro tomadas brutas guardadas dão 16 notas em 16.
