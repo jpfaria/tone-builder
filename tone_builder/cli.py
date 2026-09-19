@@ -86,12 +86,17 @@ def _record(a) -> int:
     if a.device is None or a.channel is None:
         print("record: pass --device and --channel — where to listen is never assumed", file=sys.stderr)
         return 2
-    x = recorder.record(a.seconds, a.device, a.channel)
-    rep = recorder.save_string(_root(a), a.guitar, a.position, a.string, x, recorder.SR)
-    print(f"accepted: {rep['accepted']}")
-    print(f"rejected: {rep['rejected']}")
-    print(f"missing:  {rep['missing']}")
-    return 0 if not rep["rejected"] and not rep["missing"] else 1
+    strings = [6, 5, 4, 3, 2, 1] if a.string == "all" else [int(a.string)]
+    bad = False
+    for string in strings:   # each string is its own take: the same pitch exists on more than one string
+        print(f"string {string}: play after the beep ({a.seconds:.0f} s)", flush=True)
+        x = recorder.record(a.seconds, a.device, a.channel)
+        rep = recorder.save_string(_root(a), a.guitar, a.position, string, x, recorder.SR)
+        print(f"accepted: {rep['accepted']}")
+        print(f"rejected: {rep['rejected']}")
+        print(f"missing:  {rep['missing']}", flush=True)
+        bad = bad or bool(rep["rejected"] or rep["missing"])
+    return 1 if bad else 0
 
 
 def _record_chord(a) -> int:
@@ -297,7 +302,7 @@ def main(argv: list[str] | None = None) -> int:
     rp = lib.add_parser("record")
     rp.add_argument("guitar")
     rp.add_argument("position")
-    rp.add_argument("string", type=int)
+    rp.add_argument("string", help="1-6, or `all`: the six strings in a row, 6 first, one beep each")
     rp.add_argument("--device")
     rp.add_argument("--channel", type=int)
     rp.add_argument("--seconds", type=float, default=45.0)

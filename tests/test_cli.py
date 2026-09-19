@@ -168,3 +168,22 @@ def test_check_keeps_the_noise_read_at_recording_when_the_saved_note_has_no_room
     library.write_yaml(pos / "medicao.yaml", {"c1-64-E4": {"midi": 64, "snr_db": 24.0, "accepted": True, "reasons": []}})
     assert cli.main(["library", "check", "g", "pos1", "--root", str(tmp_path)]) == 0
     assert library.read_yaml(pos / "medicao.yaml")["c1-64-E4"]["snr_db"] == 24.0
+
+
+def test_record_all_takes_the_six_strings_in_a_row_from_the_lowest(tmp_path: Path, capsys, monkeypatch):
+    from tests.test_recorder import _string_take
+    from tone_builder import recorder
+
+    asked = []
+
+    def fake_record(seconds, device, channel):
+        string = 6 - len(asked)
+        asked.append(string)
+        return _string_take(library.expected_midis(string)[:2], recorder.SR)
+
+    monkeypatch.setattr(recorder, "record", fake_record)
+    rc = cli.main(["library", "record", "g", "pos1", "all", "--device", "x", "--channel", "1", "--root", str(tmp_path)])
+    assert asked == [6, 5, 4, 3, 2, 1]
+    assert len(library.list_notes(tmp_path, "g", "pos1")) == 12
+    assert rc == 1                                  # notes are missing on every string
+    assert "string 6" in capsys.readouterr().out

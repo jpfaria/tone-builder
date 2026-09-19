@@ -11,7 +11,7 @@ Method: [docs/metodo.md](docs/metodo.md)
 ./bootstrap.sh
 .venv/bin/tone-builder library list
 .venv/bin/tone-builder library check prs-silver-sky-se pos5
-.venv/bin/tone-builder library record <guitar> <position> <string> --device "<interface>" --channel <n>
+.venv/bin/tone-builder library record <guitar> <position> <string|all> --device "<interface>" --channel <n>   # all = the six strings in a row, 6 first
 .venv/bin/tone-builder target record.wav separated-guitar.wav --guitar prs-silver-sky-se --position pos5 --out target.json
 .venv/bin/tone-builder validate
 ```
