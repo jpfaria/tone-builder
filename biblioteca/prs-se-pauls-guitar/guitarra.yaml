@@ -4,9 +4,11 @@ pickups: TCI SE stock              # music-setup/docs/guitarras.md: "TCI SE orig
 tuning: standard                   # 96/96 notes measure the pitch standard tuning predicts
 selector_positions:                # 3-way toggle + one coil mini-toggle per pickup
   bridge-hb: bridge, humbucker (mini-toggle not split)
+  bridge-split: bridge, mini-toggle split (single coil)
   neck-hb: neck, humbucker (mini-toggle not split)
   neck-split: neck, mini-toggle split (single coil)
 recorded:
   bridge-hb: "2026-09-19"
+  bridge-split: "2026-09-19"
   neck-hb: "2026-09-19"
   neck-split: "2026-09-19"
