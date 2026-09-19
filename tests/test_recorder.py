@@ -85,15 +85,11 @@ def test_save_string_keeps_the_raw_take_so_a_missing_note_can_be_diagnosed(tmp_p
     assert [p.name for p in library.list_notes(tmp_path, "g", "pos5")] == ["c1-64-E4.wav", "c1-66-F#4.wav"]
 
 
-def _real_take():
-    """A real string-3 take of a bridge pickup (19/09/2026), the one that showed both defects."""
-    import pytest
+def _real_take(string: int = 3):
+    """Real takes of a bridge pickup (19/09/2026), the ones that showed the defects."""
     import soundfile as sf
 
-    p = Path(__file__).parent / "data" / "c3-bridge-take.flac"
-    if not p.exists():
-        pytest.skip("real take not present")
-    return sf.read(p, dtype="float32")
+    return sf.read(Path(__file__).parent / "data" / f"c{string}-bridge-take.flac", dtype="float32")
 
 
 def test_cut_notes_keeps_a_note_whose_attack_reads_an_octave_low():
@@ -106,3 +102,17 @@ def test_save_string_measures_noise_even_when_the_cut_starts_on_the_attack(tmp_p
     x, sr = _real_take()
     report = recorder.save_string(tmp_path, "g", "pos1", 3, x, sr)
     assert not [m for m, why in report["rejected"].items() if why == ["snr"]]
+
+
+def test_save_string_names_a_note_that_reads_as_its_own_subharmonic(tmp_path: Path):
+    # string 1: fret 11 read 63 (an octave low) on 17 of 21 frames, fret 15 read 60 and 67 (f/3, f/2),
+    # fret 2 read 54 on the middle frame. None of those is a note of the string: the detector slipped, not the player
+    x, sr = _real_take(1)
+    report = recorder.save_string(tmp_path, "g", "pos1", 1, x, sr)
+    assert report == {"accepted": list(range(64, 80)), "rejected": {}, "missing": []}
+
+
+def test_a_lower_note_really_played_is_not_renamed_to_its_octave():
+    sr = 48000
+    spans = recorder.note_spans(_string_take([67], sr), sr, list(range(64, 80)))
+    assert list(spans) == [67]

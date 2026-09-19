@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import soundfile as sf
-from tone_analyzer.notes import detect_notes
+from tone_analyzer import notes as ta_notes
 from tone_analyzer.take import take_metrics
 
 from tone_builder import library
@@ -16,8 +16,14 @@ from tone_builder.chords import reduce_octaves
 SR = 48000
 PREROLL_S = 0.02
 METRIC_PREROLL_S = 0.15  # the noise floor is read before the attack; 20 ms of pre-roll leaves nothing to read
-SUSTAIN_FRAC = 0.6       # a bridge pickup reads an octave low on the attack frames (6 of 21 measured); the string's
-                         # expected notes already filter the result, so the detector can be more tolerant here
+SUSTAIN_FRAC = 0.75
+NOTE_S = 0.6
+CONF_MIN = 0.8
+MIN_ESTIMATES = 6
+# Plain autocorrelation slips to a subharmonic of the note on a bridge pickup: string 1 of the PRS read f/2 on
+# 17 of 21 frames of fret 11, and f/3 then f/2 on fret 15. The recorder knows which notes the string holds, so a
+# frame reading 12, 19 or 24 semitones under an expected note counts for that note.
+SUBHARMONICS = (12, 19, 24)
 BEEP_S = 0.15
 CHORD_TAKE_S = 2.0
 CHORD_PREROLL_S = 0.05   # a chord's own onset detector needs >2 blocks (~43ms) of true silence before the attack
@@ -43,15 +49,38 @@ def record(seconds: float, device, channel: int, sr: int = SR, playrec=None) -> 
     return np.asarray(rec)[:, 0]
 
 
+def _name(estimates: np.ndarray, expected: list[int]) -> int | None:
+    """The expected note most frames agree on, a subharmonic read counting for it; direct reads break a tie."""
+    best, best_score = None, (0.0, 0.0)
+    for m in expected:
+        direct = np.abs(estimates - m) <= 0.5
+        folded = direct | np.any([np.abs(estimates - (m - s)) <= 0.5 for s in SUBHARMONICS], axis=0)
+        score = (float(folded.mean()), float(direct.mean()))
+        if direct.any() and score > best_score:
+            best, best_score = m, score
+    return best if best_score[0] >= SUSTAIN_FRAC else None
+
+
 def note_spans(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, tuple[int, int]]:
     """Attack and end sample of each expected note; the longest one when a note was played twice."""
-    found = [n for n in detect_notes(signal, sr, sustain_frac=SUSTAIN_FRAC) if n["midi"] in expected]
+    x = np.asarray(signal, dtype=np.float64)
+    frame, hop = int(round(ta_notes.FRAME_S * sr)), int(round(ta_notes.HOP_S * sr))
+    span_n = int(round(NOTE_S * sr))
+    found: list[tuple[int, int]] = []
+    for a in ta_notes.note_onsets(x, sr):
+        if a + span_n >= len(x):
+            continue
+        est = [ta_notes.hz_to_midi(f0) for f0, conf in
+               (ta_notes.pitch_autocorr(x[a + k:a + k + frame], sr) for k in range(0, span_n - frame, hop))
+               if conf > CONF_MIN]
+        midi = _name(np.array(est), expected) if len(est) >= MIN_ESTIMATES else None
+        if midi is not None:
+            found.append((a, midi))
     spans: dict[int, tuple[int, int]] = {}
-    for i, n in enumerate(found):
-        nxt = found[i + 1]["start_s"] if i + 1 < len(found) else n["start_s"] + 2.0
-        span = (int(round(n["start_s"] * sr)), min(len(signal), int(round(nxt * sr))))
-        if n["midi"] not in spans or span[1] - span[0] > spans[n["midi"]][1] - spans[n["midi"]][0]:
-            spans[n["midi"]] = span
+    for i, (a, midi) in enumerate(found):
+        end = min(len(x), found[i + 1][0] if i + 1 < len(found) else a + int(2.0 * sr))
+        if midi not in spans or end - a > spans[midi][1] - spans[midi][0]:
+            spans[midi] = (a, end)
     return spans
 
 
@@ -65,6 +94,8 @@ def cut_notes(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, np.
 
 def measure_and_judge(piece: np.ndarray, sr: int, midi: int) -> dict:
     metrics = take_metrics(piece, sr)
+    if metrics["midi"] is not None and midi - metrics["midi"] in SUBHARMONICS:
+        metrics = {**metrics, "midi": midi}   # the single middle frame slipped to a subharmonic; note_spans named it
     return {**{k: metrics[k] for k in _METRIC_KEYS}, **judge_take(metrics, midi)}
 
 

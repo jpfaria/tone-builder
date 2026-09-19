@@ -15,14 +15,13 @@ c1-65-F4:
   accepted: true
   reasons: []
 c1-66-F#4:
-  midi: 54
+  midi: 66
   duration_s: 0.8153333333333334
   saturated_samples: 0
   snr_db: 11.979646869443194
   peak_db: -19.28013634008369
-  accepted: false
-  reasons:
-  - pitch
+  accepted: true
+  reasons: []
 c1-67-G4:
   midi: 67
   duration_s: 0.7403333333333333
@@ -240,14 +239,13 @@ c2-72-C5:
   accepted: true
   reasons: []
 c2-73-C#5:
-  midi: 61
+  midi: 73
   duration_s: 0.8253333333333334
   saturated_samples: 0
   snr_db: 11.441813796394868
   peak_db: -22.834271523696398
-  accepted: false
-  reasons:
-  - pitch
+  accepted: true
+  reasons: []
 c2-74-D5:
   midi: 74
   duration_s: 0.9753333333333334
@@ -345,14 +343,13 @@ c3-65-F4:
   accepted: true
   reasons: []
 c3-66-F#4:
-  midi: 47
+  midi: 66
   duration_s: 0.7353333333333333
   saturated_samples: 0
   snr_db: 18.817199985428147
   peak_db: -20.446329823951615
-  accepted: false
-  reasons:
-  - pitch
+  accepted: true
+  reasons: []
 c3-67-G4:
   midi: 67
   duration_s: 0.8153333333333334

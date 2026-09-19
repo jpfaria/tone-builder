@@ -73,10 +73,13 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
 Na posição 1 da PRS cada tomada perdia duas ou três notas diferentes, sem erro de execução. Duas causas,
 achadas na tomada bruta (`_takes/c<corda>.wav`, que o gravador agora guarda):
 
-- O ataque da ponte lê uma oitava abaixo nos primeiros quadros (6 de 21 na casa 2 da 3ª corda). Com
-  `sustain_frac=0.75` o `detect_notes` descartava a nota inteira. O gravador chama com 0,6: as notas
-  esperadas da corda já filtram o resultado. O `pitch_autocorr` do tone-analyzer não foi tocado.
+- A autocorrelação escorrega para um sub-harmônico da nota: uma oitava abaixo em 6 de 21 quadros na
+  casa 2 da 3ª corda, em 17 de 21 na casa 11 da 1ª, e f/3 depois f/2 na casa 15 da 1ª. O `detect_notes`
+  descartava a nota ou lhe dava outro nome. O gravador agora nomeia a nota ele mesmo (`note_spans`):
+  um quadro que lê 12, 19 ou 24 semitons abaixo de uma nota esperada da corda conta para ela, e leitura
+  direta desempata (um Sol de verdade não vira o Sol da oitava de cima). O `pitch_autocorr` do
+  tone-analyzer não foi tocado.
 - `snr_db` vinha vazio quando o corte começava a menos de 10 ms do ataque. O ruído agora é medido num
   corte com 150 ms de pré-rolagem; a nota salva continua com 20 ms.
 
-A mesma tomada passou de 10 aceitas em 16 para 16 em 16 (`tests/data/c3-bridge-take.flac`).
+As mesmas tomadas passaram de 10 e 13 aceitas em 16 para 16 em 16 (`tests/data/c3-` e `c1-bridge-take.flac`).
