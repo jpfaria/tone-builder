@@ -1,1 +1,778 @@
-{}
+c6-40-E2:
+  midi: 40
+  duration_s: 3.966666666666667
+  saturated_samples: 0
+  snr_db: 12.206396537994678
+  peak_db: -14.076440974864804
+  accepted: true
+  reasons: []
+c6-41-F2:
+  midi: 41
+  duration_s: 2.2173333333333334
+  saturated_samples: 0
+  snr_db: 13.2693310356414
+  peak_db: -18.687789609109466
+  accepted: true
+  reasons: []
+c6-42-F#2:
+  midi: 42
+  duration_s: 1.7266666666666666
+  saturated_samples: 0
+  snr_db: 13.987791271819173
+  peak_db: -13.957452463734228
+  accepted: true
+  reasons: []
+c6-43-G2:
+  midi: 43
+  duration_s: 1.7693333333333334
+  saturated_samples: 0
+  snr_db: 16.055652287572887
+  peak_db: -12.681803259113815
+  accepted: true
+  reasons: []
+c6-44-G#2:
+  midi: 44
+  duration_s: 1.9826666666666666
+  saturated_samples: 0
+  snr_db: 15.82919848612864
+  peak_db: -11.572407608070987
+  accepted: true
+  reasons: []
+c6-45-A2:
+  midi: 45
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 11.945703400174686
+  peak_db: -16.896564993295428
+  accepted: true
+  reasons: []
+c6-46-A#2:
+  midi: 46
+  duration_s: 1.6413333333333333
+  saturated_samples: 0
+  snr_db: 15.788503010532907
+  peak_db: -12.93183252378012
+  accepted: true
+  reasons: []
+c6-47-B2:
+  midi: 47
+  duration_s: 1.492
+  saturated_samples: 0
+  snr_db: 15.902691316766106
+  peak_db: -11.013395023950709
+  accepted: true
+  reasons: []
+c6-48-C3:
+  midi: 48
+  duration_s: 1.7266666666666666
+  saturated_samples: 0
+  snr_db: 12.136751485236601
+  peak_db: -10.065956945312106
+  accepted: true
+  reasons: []
+c6-49-C#3:
+  midi: 49
+  duration_s: 1.492
+  saturated_samples: 0
+  snr_db: 15.495092466909604
+  peak_db: -12.683774814265576
+  accepted: true
+  reasons: []
+c6-51-D#3:
+  midi: 51
+  duration_s: 1.3
+  saturated_samples: 0
+  snr_db: 18.05306749629697
+  peak_db: -16.38040243064974
+  accepted: true
+  reasons: []
+c6-52-E3:
+  midi: 52
+  duration_s: 1.7906666666666666
+  saturated_samples: 0
+  snr_db: 16.527457740470712
+  peak_db: -12.455349201882182
+  accepted: true
+  reasons: []
+c6-53-F3:
+  midi: 53
+  duration_s: 1.5986666666666667
+  saturated_samples: 0
+  snr_db: 15.024000018761562
+  peak_db: -13.015413773244454
+  accepted: true
+  reasons: []
+c6-54-F#3:
+  midi: 54
+  duration_s: 1.5986666666666667
+  saturated_samples: 0
+  snr_db: 12.159853537031868
+  peak_db: -11.677671315676562
+  accepted: true
+  reasons: []
+c6-55-G3:
+  midi: 55
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: 14.571992367355733
+  peak_db: -12.842843293545236
+  accepted: true
+  reasons: []
+c5-45-A2:
+  midi: 45
+  duration_s: 2.324
+  saturated_samples: 0
+  snr_db: 18.244720479455623
+  peak_db: -22.508272825583294
+  accepted: true
+  reasons: []
+c5-47-B2:
+  midi: 47
+  duration_s: 2.004
+  saturated_samples: 0
+  snr_db: 16.27066334047403
+  peak_db: -19.270205521933843
+  accepted: true
+  reasons: []
+c5-48-C3:
+  midi: 48
+  duration_s: 1.94
+  saturated_samples: 0
+  snr_db: 17.743338389974554
+  peak_db: -21.22121732780669
+  accepted: true
+  reasons: []
+c5-49-C#3:
+  midi: 49
+  duration_s: 2.004
+  saturated_samples: 0
+  snr_db: 16.075882240565278
+  peak_db: -16.814032150155164
+  accepted: true
+  reasons: []
+c5-50-D3:
+  midi: 50
+  duration_s: 1.876
+  saturated_samples: 0
+  snr_db: 14.6934807517573
+  peak_db: -17.309429741196535
+  accepted: true
+  reasons: []
+c5-51-D#3:
+  midi: 51
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 18.79593041000075
+  peak_db: -17.55378610847138
+  accepted: true
+  reasons: []
+c5-52-E3:
+  midi: 52
+  duration_s: 1.8546666666666667
+  saturated_samples: 0
+  snr_db: 19.012058487972197
+  peak_db: -16.876831495077294
+  accepted: true
+  reasons: []
+c5-53-F3:
+  midi: 53
+  duration_s: 1.684
+  saturated_samples: 0
+  snr_db: 17.81032915305608
+  peak_db: -15.904850547534332
+  accepted: true
+  reasons: []
+c5-54-F#3:
+  midi: 54
+  duration_s: 1.684
+  saturated_samples: 0
+  snr_db: 16.67383017844208
+  peak_db: -16.932136658248325
+  accepted: true
+  reasons: []
+c5-55-G3:
+  midi: 55
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 18.982478221279898
+  peak_db: -18.331960103983565
+  accepted: true
+  reasons: []
+c5-56-G#3:
+  midi: 56
+  duration_s: 1.812
+  saturated_samples: 0
+  snr_db: 16.588420761079355
+  peak_db: -17.427115510150514
+  accepted: true
+  reasons: []
+c5-57-A3:
+  midi: 57
+  duration_s: 1.62
+  saturated_samples: 0
+  snr_db: 14.269050243890199
+  peak_db: -16.302090811958102
+  accepted: true
+  reasons: []
+c5-58-A#3:
+  midi: 58
+  duration_s: 1.748
+  saturated_samples: 0
+  snr_db: 21.470624822912526
+  peak_db: -17.190797277033685
+  accepted: true
+  reasons: []
+c5-59-B3:
+  midi: 59
+  duration_s: 1.8333333333333333
+  saturated_samples: 0
+  snr_db: 20.372143395414426
+  peak_db: -17.609252957999658
+  accepted: true
+  reasons: []
+c5-60-C4:
+  midi: 60
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: 16.397081464831167
+  peak_db: -14.567441190300327
+  accepted: true
+  reasons: []
+c5-46-A#2:
+  midi: 46
+  duration_s: 1.812
+  saturated_samples: 0
+  snr_db: 18.9738845424855
+  peak_db: -15.312490077228805
+  accepted: true
+  reasons: []
+c4-50-D3:
+  midi: 50
+  duration_s: 2.3026666666666666
+  saturated_samples: 0
+  snr_db: 22.53172229511975
+  peak_db: -15.612304648582453
+  accepted: true
+  reasons: []
+c4-52-E3:
+  midi: 52
+  duration_s: 2.132
+  saturated_samples: 0
+  snr_db: 19.24350774302882
+  peak_db: -16.48758825942575
+  accepted: true
+  reasons: []
+c4-53-F3:
+  midi: 53
+  duration_s: 1.8546666666666667
+  saturated_samples: 0
+  snr_db: 16.677731330886296
+  peak_db: -17.024902022532128
+  accepted: true
+  reasons: []
+c4-54-F#3:
+  midi: 54
+  duration_s: 1.62
+  saturated_samples: 0
+  snr_db: 18.00553706995281
+  peak_db: -16.766307592726463
+  accepted: true
+  reasons: []
+c4-55-G3:
+  midi: 55
+  duration_s: 1.5986666666666667
+  saturated_samples: 0
+  snr_db: 22.090284495646173
+  peak_db: -17.719532472276928
+  accepted: true
+  reasons: []
+c4-56-G#3:
+  midi: 56
+  duration_s: 1.6413333333333333
+  saturated_samples: 0
+  snr_db: 17.786901127448903
+  peak_db: -15.174797825833489
+  accepted: true
+  reasons: []
+c4-57-A3:
+  midi: 57
+  duration_s: 1.492
+  saturated_samples: 0
+  snr_db: 17.512896947938316
+  peak_db: -16.68123038060266
+  accepted: true
+  reasons: []
+c4-58-A#3:
+  midi: 58
+  duration_s: 1.5133333333333334
+  saturated_samples: 0
+  snr_db: 17.64714977132575
+  peak_db: -17.00734719362006
+  accepted: true
+  reasons: []
+c4-59-B3:
+  midi: 59
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 19.923393110474308
+  peak_db: -16.35926266412305
+  accepted: true
+  reasons: []
+c4-60-C4:
+  midi: 60
+  duration_s: 1.4706666666666666
+  saturated_samples: 0
+  snr_db: 16.428805720799623
+  peak_db: -15.524529731964767
+  accepted: true
+  reasons: []
+c4-61-C#4:
+  midi: 61
+  duration_s: 1.492
+  saturated_samples: 0
+  snr_db: 18.690717556898875
+  peak_db: -15.502665674699358
+  accepted: true
+  reasons: []
+c4-62-D4:
+  midi: 62
+  duration_s: 1.5773333333333333
+  saturated_samples: 0
+  snr_db: 15.330756429389886
+  peak_db: -19.30746369843633
+  accepted: true
+  reasons: []
+c4-63-D#4:
+  midi: 63
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 17.975541654729398
+  peak_db: -16.0836325184386
+  accepted: true
+  reasons: []
+c4-64-E4:
+  midi: 64
+  duration_s: 1.4493333333333334
+  saturated_samples: 0
+  snr_db: 22.894474089992116
+  peak_db: -15.221412260491844
+  accepted: true
+  reasons: []
+c4-65-F4:
+  midi: 65
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: 15.237789991035328
+  peak_db: -16.06165973931061
+  accepted: true
+  reasons: []
+c4-51-D#3:
+  midi: 51
+  duration_s: 2.0893333333333333
+  saturated_samples: 0
+  snr_db: 20.7151947013748
+  peak_db: -15.357696399866754
+  accepted: true
+  reasons: []
+c3-57-A3:
+  midi: 57
+  duration_s: 1.812
+  saturated_samples: 0
+  snr_db: 14.351887120091071
+  peak_db: -14.266186760554739
+  accepted: true
+  reasons: []
+c3-58-A#3:
+  midi: 58
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -15.762927496702158
+  accepted: false
+  reasons:
+  - snr
+c3-59-B3:
+  midi: 59
+  duration_s: 1.7266666666666666
+  saturated_samples: 0
+  snr_db: 17.15781645713116
+  peak_db: -16.887025019976573
+  accepted: true
+  reasons: []
+c3-60-C4:
+  midi: 60
+  duration_s: 1.684
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -13.814980652020365
+  accepted: false
+  reasons:
+  - snr
+c3-61-C#4:
+  midi: 61
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 15.446702009936786
+  peak_db: -15.227623450053853
+  accepted: true
+  reasons: []
+c3-62-D4:
+  midi: 62
+  duration_s: 1.6413333333333333
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -16.092361447518005
+  accepted: false
+  reasons:
+  - snr
+c3-63-D#4:
+  midi: 63
+  duration_s: 1.7266666666666666
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -15.295431008791411
+  accepted: false
+  reasons:
+  - snr
+c3-64-E4:
+  midi: 64
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 14.718817076523635
+  peak_db: -15.731240329481604
+  accepted: true
+  reasons: []
+c3-65-F4:
+  midi: 65
+  duration_s: 1.62
+  saturated_samples: 0
+  snr_db: 11.5509453638712
+  peak_db: -14.374317527141429
+  accepted: true
+  reasons: []
+c3-66-F#4:
+  midi: 66
+  duration_s: 1.62
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -14.349454652894941
+  accepted: false
+  reasons:
+  - snr
+c3-67-G4:
+  midi: 67
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 21.76244070981933
+  peak_db: -15.331703514239948
+  accepted: true
+  reasons: []
+c3-68-G#4:
+  midi: 68
+  duration_s: 1.5133333333333334
+  saturated_samples: 0
+  snr_db: 23.192430270612604
+  peak_db: -14.643172316324595
+  accepted: true
+  reasons: []
+c3-69-A4:
+  midi: 69
+  duration_s: 1.5346666666666666
+  saturated_samples: 0
+  snr_db: 15.420644073663745
+  peak_db: -14.023372258578167
+  accepted: true
+  reasons: []
+c3-70-A#4:
+  midi: 70
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: 16.921370672873934
+  peak_db: -15.375563809631931
+  accepted: true
+  reasons: []
+c3-55-G3:
+  midi: 55
+  duration_s: 2.2813333333333334
+  saturated_samples: 0
+  snr_db: 15.532929434724544
+  peak_db: -17.183809918479774
+  accepted: true
+  reasons: []
+c3-56-G#3:
+  midi: 56
+  duration_s: 1.8333333333333333
+  saturated_samples: 0
+  snr_db: 13.561820113541785
+  peak_db: -15.389037624279045
+  accepted: true
+  reasons: []
+c2-59-B3:
+  midi: 59
+  duration_s: 1.94
+  saturated_samples: 0
+  snr_db: 15.733743562274718
+  peak_db: -20.42222105664646
+  accepted: true
+  reasons: []
+c2-60-C4:
+  midi: 60
+  duration_s: 1.812
+  saturated_samples: 0
+  snr_db: 16.643530283401944
+  peak_db: -17.68840743356351
+  accepted: true
+  reasons: []
+c2-61-C#4:
+  midi: 61
+  duration_s: 1.812
+  saturated_samples: 0
+  snr_db: 19.299756929855747
+  peak_db: -18.436458481103227
+  accepted: true
+  reasons: []
+c2-62-D4:
+  midi: 62
+  duration_s: 1.7693333333333334
+  saturated_samples: 0
+  snr_db: 16.935494335278328
+  peak_db: -19.338868117872607
+  accepted: true
+  reasons: []
+c2-63-D#4:
+  midi: 63
+  duration_s: 1.6413333333333333
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -19.208339632026945
+  accepted: false
+  reasons:
+  - snr
+c2-64-E4:
+  midi: 64
+  duration_s: 1.8333333333333333
+  saturated_samples: 0
+  snr_db: 15.853109960545119
+  peak_db: -18.29500498648975
+  accepted: true
+  reasons: []
+c2-65-F4:
+  midi: 65
+  duration_s: 1.7053333333333334
+  saturated_samples: 0
+  snr_db: 14.478581242493888
+  peak_db: -18.537959288049304
+  accepted: true
+  reasons: []
+c2-66-F#4:
+  midi: 66
+  duration_s: 1.492
+  saturated_samples: 0
+  snr_db: 15.086955502826108
+  peak_db: -19.054252892220106
+  accepted: true
+  reasons: []
+c2-67-G4:
+  midi: 67
+  duration_s: 1.3853333333333333
+  saturated_samples: 0
+  snr_db: 12.53656014225389
+  peak_db: -16.65859330144574
+  accepted: true
+  reasons: []
+c2-68-G#4:
+  midi: 68
+  duration_s: 1.4066666666666667
+  saturated_samples: 0
+  snr_db: 13.542697029628933
+  peak_db: -16.48843914534163
+  accepted: true
+  reasons: []
+c2-69-A4:
+  midi: 69
+  duration_s: 1.4493333333333334
+  saturated_samples: 0
+  snr_db: 13.872040087626111
+  peak_db: -16.464686282834695
+  accepted: true
+  reasons: []
+c2-70-A#4:
+  midi: 70
+  duration_s: 1.364
+  saturated_samples: 0
+  snr_db: 18.59190540740512
+  peak_db: -19.29361148283577
+  accepted: true
+  reasons: []
+c2-71-B4:
+  midi: 71
+  duration_s: 1.5773333333333333
+  saturated_samples: 0
+  snr_db: 19.04223410693252
+  peak_db: -16.044167907232907
+  accepted: true
+  reasons: []
+c2-72-C5:
+  midi: 72
+  duration_s: 1.4493333333333334
+  saturated_samples: 0
+  snr_db: 19.987634043336108
+  peak_db: -16.306387265098465
+  accepted: true
+  reasons: []
+c2-73-C#5:
+  midi: 73
+  duration_s: 1.428
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -18.202673092599618
+  accepted: false
+  reasons:
+  - snr
+c2-74-D5:
+  midi: 74
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: 21.3745647754735
+  peak_db: -16.298096509829524
+  accepted: true
+  reasons: []
+c1-64-E4:
+  midi: 64
+  duration_s: 2.025333333333333
+  saturated_samples: 0
+  snr_db: 37.12137835801996
+  peak_db: -19.26941897165134
+  accepted: true
+  reasons: []
+c1-65-F4:
+  midi: 65
+  duration_s: 1.876
+  saturated_samples: 0
+  snr_db: 13.171798185244725
+  peak_db: -21.280290966241676
+  accepted: true
+  reasons: []
+c1-66-F#4:
+  midi: 66
+  duration_s: 1.7693333333333334
+  saturated_samples: 0
+  snr_db: 17.5022052648575
+  peak_db: -19.892360756868953
+  accepted: true
+  reasons: []
+c1-67-G4:
+  midi: 67
+  duration_s: 1.7693333333333334
+  saturated_samples: 0
+  snr_db: 23.538943974667504
+  peak_db: -19.028775356656112
+  accepted: true
+  reasons: []
+c1-68-G#4:
+  midi: 68
+  duration_s: 1.7266666666666666
+  saturated_samples: 0
+  snr_db: 12.454725762916617
+  peak_db: -16.83471017706206
+  accepted: true
+  reasons: []
+c1-69-A4:
+  midi: 69
+  duration_s: 1.6413333333333333
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -18.94048350232159
+  accepted: false
+  reasons:
+  - snr
+c1-70-A#4:
+  midi: 70
+  duration_s: 1.5346666666666666
+  saturated_samples: 0
+  snr_db: 20.183687282056063
+  peak_db: -17.871194744564562
+  accepted: true
+  reasons: []
+c1-71-B4:
+  midi: 71
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 15.500756601597608
+  peak_db: -16.91941770778922
+  accepted: true
+  reasons: []
+c1-72-C5:
+  midi: 72
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 14.877549492366612
+  peak_db: -17.712336498881477
+  accepted: true
+  reasons: []
+c1-73-C#5:
+  midi: 73
+  duration_s: 1.556
+  saturated_samples: 0
+  snr_db: 12.432377152320335
+  peak_db: -17.00856881477374
+  accepted: true
+  reasons: []
+c1-74-D5:
+  midi: 74
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: 16.66737648220714
+  peak_db: -16.815558779999225
+  accepted: true
+  reasons: []
+c1-76-E5:
+  midi: 76
+  duration_s: 1.684
+  saturated_samples: 0
+  snr_db: 13.250238377396855
+  peak_db: -17.614945653325893
+  accepted: true
+  reasons: []
+c1-77-F5:
+  midi: 77
+  duration_s: 1.5986666666666667
+  saturated_samples: 0
+  snr_db: 12.265835341309767
+  peak_db: -15.747910306017092
+  accepted: true
+  reasons: []
+c1-78-F#5:
+  midi: 78
+  duration_s: 1.6626666666666667
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -17.81668430875663
+  accepted: false
+  reasons:
+  - snr
+c1-75-D#5:
+  midi: 75
+  duration_s: 1.5133333333333334
+  saturated_samples: 0
+  snr_db: 11.596724339728851
+  peak_db: -16.177790744524994
+  accepted: true
+  reasons: []
+c1-79-G5:
+  midi: 79
+  duration_s: 2.02
+  saturated_samples: 0
+  snr_db: null
+  peak_db: -16.1562863383069
+  accepted: false
+  reasons:
+  - snr
+c6-50-D3:
+  midi: 50
+  duration_s: 3.3053333333333335
+  saturated_samples: 0
+  snr_db: 20.079574984330137
+  peak_db: -11.086407932195495
+  accepted: true
+  reasons: []
