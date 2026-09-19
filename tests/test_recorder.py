@@ -116,3 +116,13 @@ def test_a_lower_note_really_played_is_not_renamed_to_its_octave():
     sr = 48000
     spans = recorder.note_spans(_string_take([67], sr), sr, list(range(64, 80)))
     assert list(spans) == [67]
+
+
+def test_the_noise_read_on_the_take_wins_over_the_one_read_on_the_saved_note():
+    # PRS SE Paul's Guitar, 19/09/2026: 13.5 dB on the take, 7.9 dB read again from the note's 20 ms of pre-roll
+    sr = 48000
+    note = _note(64, sr, 1.0) * np.exp(-np.arange(sr) / sr / 0.03)   # a short note: little energy over the 0.6 s read
+    tail = 0.04 * np.sin(2 * np.pi * 300 * np.arange(int(0.02 * sr)) / sr)   # the note before it, still ringing
+    piece = np.concatenate([tail, note]).astype(np.float32)
+    assert recorder.measure_and_judge(piece, sr, 64)["reasons"] == ["snr"]
+    assert recorder.measure_and_judge(piece, sr, 64, recorded_snr_db=13.5)["accepted"] is True
