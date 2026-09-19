@@ -162,3 +162,55 @@ def test_empty_target_says_what_was_seen(tmp_path):
     with pytest.raises(ValueError, match=r"no target note or chord: .*chords_seen=1 .*outside_window="):
         build_tone(disc, disc, {}, RESEARCH, dev, tmp_path / "w", "x", window=(100.0, None),
                    chords={"detector": "salience", "recorded": {}})
+
+
+class LoudDevice(FakeDevice):
+    """Clips at the output unless the level block turns it down; the level knob sits at the chain's end."""
+    output_levels = (100, 50, 25, 12, 6)
+
+    def with_level(self, blocks, level):
+        return [b for b in blocks if b["model"] != "level"] + [{"model": "level", "gains": [0.0] * 8, "level": level}]
+
+    def renderer(self, blocks):
+        inner = super().renderer([b for b in blocks if b["model"] != "level"])
+        level = next((b["level"] for b in blocks if b["model"] == "level"), 100)
+
+        def render(src, dst):
+            inner(src, dst)
+            x, sr = sf.read(str(src), always_2d=False)
+            y, _ = sf.read(str(dst), always_2d=False)
+            sf.write(str(dst), np.clip(y * (np.abs(x).max() / 0.3) * 5 * level / 100, -1, 1), sr, subtype="FLOAT")
+        return render
+
+
+def test_output_level_is_lowered_until_the_margin_passes(tmp_path):
+    disc, by_midi = _inputs(tmp_path)
+    dev = LoudDevice({"amp": [_opt("amp", "amp", "Amp", [0, 2, -2, 2, -2, 2, -2, 2])],
+                      "single_drive": [_opt("ts", "single_drive", "TS", [0, 2, -2, 2, -2, 2, -2, 2])]})
+    out = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w", "song")
+    assert out["report"]["output_level"] == 12   # 25 still clips at +18 dB in this fake
+    assert out["report"]["margin_ok"] is True
+    assert out["preset"]["blocks"][-1] == "level"
+
+
+class OneDriveDevice(FakeDevice):
+    def renderer(self, blocks):
+        from tone_builder.render import RenderError
+        if sum(b["model"].startswith("d") for b in blocks) > 1:
+            def fail(src, dst):
+                raise RenderError("the device has one drive block; two were asked")
+            return fail
+        return super().renderer(blocks)
+
+
+def test_stacked_drives_the_device_cannot_hold_gets_a_reason(tmp_path):
+    disc, by_midi = _inputs(tmp_path)
+    research = {"blocks": RESEARCH["blocks"] + [
+        {"class": "single_drive", "unit": "BB", "era": "record", "sources": ["https://d"]}],
+                "not_found": [n for n in RESEARCH["not_found"] if n["class"] != "stacked_drives"]}
+    dev = OneDriveDevice({"amp": [_opt("amp", "amp", "Amp", [0] * 8)],
+                          "single_drive": [_opt("d1", "single_drive", "TS", [0, 1, -1, 1, -1, 1, -1, 1]),
+                                           _opt("d2", "single_drive", "BB", [0, 1, -1, 1, -1, 1, -1, 1])]})
+    out = build_tone(disc, disc, by_midi, research, dev, tmp_path / "w", "song")
+    assert "one drive block" in out["report"]["classes"]["stacked_drives"]["reason"]
+    assert "stacked_drives" not in out["report"]["missing"]

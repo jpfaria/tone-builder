@@ -24,7 +24,7 @@ import numpy as np
 from tone_builder import report as report_mod
 from tone_builder import retention
 from tone_builder.battery import Candidate, run_battery
-from tone_builder.margin import measure_margin
+from tone_builder.margin import margin_ok, measure_margin
 from tone_builder.render import measure
 from tone_builder.research import validate
 from tone_builder.chords import di_candidates
@@ -157,6 +157,9 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     entry = step("stacked_drives", "drive", pairs, {p.unit for p in pairs})
     if not pairs and not entry.get("reason"):
         entry["reason"] = f"fewer than 2 sourced drive units measured ({len(best_by_unit)})"
+    elif pairs and not entry.get("measured") and entry.get("errors") and not entry.get("reason"):
+        # every pair failed to render: the device cannot hold two drives (MK-300: one DS block)
+        entry["reason"] = f"no pair could be rendered: {entry['errors'][0].split(': ', 1)[-1]}"
 
     note_absent(step("boost", "boost", options.get("boost", [])), "boost")
 
@@ -185,9 +188,22 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
         tfx_entry["shipped"] = sorted(seen)
 
     final_blocks = assemble(state)
+    dis = [a["di"] for a in assignments]
+    margin = measure_margin(device.renderer(final_blocks), dis, workdir / "margin")
+    level = None
+    levels = getattr(device, "output_levels", ())
+    if levels and not margin_ok(margin):
+        # the output clips: turn the device's last-in-chain level down until +18 dB passes (level is not timbre)
+        for level in levels[1:]:
+            blocks = device.with_level(final_blocks, level)
+            margin = measure_margin(device.renderer(blocks), dis, workdir / f"margin-level{level}")
+            if margin_ok(margin):
+                break
+        final_blocks = blocks
     final = measure(device.renderer(final_blocks), assignments, workdir / "final")
-    margin = measure_margin(device.renderer(final_blocks), [a["di"] for a in assignments], workdir / "margin")
     rep = report_mod.build(classes, margin, final["deviation"])
+    if levels:
+        rep["output_level"] = level if level is not None else levels[0]
     rep["absent_from_catalog"] = absent
     rep["final_deviation_db"] = final["deviation"]
     rep["notes"] = [{"name": a["note"]["name"], "kind": a["note"]["kind"], "start_s": a["note"]["start_s"],

@@ -27,6 +27,10 @@ def _fmt(v: float | None) -> str:
 def to_markdown(rep: dict) -> str:
     lines = [f"**Status: {rep['status']}**", "",
              f"Baseline deviation: {_fmt(rep['baseline_deviation_db'])} dB", ""]
+    if "final_deviation_db" in rep:
+        lines += [f"Final deviation: {_fmt(rep['final_deviation_db'])} dB", ""]
+    if "output_level" in rep:
+        lines += [f"Output level (device's last block, lowered until +18 dB does not clip): {rep['output_level']}", ""]
     if rep["missing"]:
         lines += [f"Classes without a number or a reason: {', '.join(rep['missing'])}", ""]
     lines += ["| class | status | sourced best | test dB | accepted | unsourced best | reason |",

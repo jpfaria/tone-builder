@@ -124,3 +124,13 @@ def test_runner_gives_up_on_a_device_that_always_hangs(tmp_path):
     exe.chmod(0o755)
     code, out = Runner(str(exe), timeout_s=0.5, attempts=2)(["show"])
     assert code != 0 and "timed out" in out
+
+
+def test_mvave_sets_every_knob_and_the_output_level(tmp_path):
+    # knobs left out were inherited from whatever preset was loaded; an unknown default goes to the knob's centre
+    dev = MvaveDevice(tmp_path, FakeMvave())
+    cmds = dev.apply_commands([{"category": "AMP", "model": "61DUMBLE_FG", "knobs": {"Gain": 80}}])
+    assert ["param", "AMP", "Gain", "80"] in cmds and ["param", "AMP", "Level", "50"] in cmds
+    assert ["param", "VOL", "VOL", "100"] in cmds
+    low = dev.apply_commands(dev.with_level([{"category": "AMP", "model": "61DUMBLE_FG", "knobs": {}}], 25))
+    assert ["param", "VOL", "VOL", "25"] in low and ["param", "VOL", "VOL", "100"] not in low

@@ -238,8 +238,19 @@ class MvaveDevice(PedalDevice):
                 out.append({"index": int(m.group(1)), "name": m.group(2), "default": d, "min": 0.0, "max": 100.0})
         return out
 
+    output_levels = (100, 70, 50, 35, 25, 18, 12)   # VOL block, the last in the chain
+
     def settings(self, category: str, model: str) -> list[dict]:
         return [{}] if category == "EQ" else super().settings(category, model)
+
+    def with_level(self, blocks: list[dict], level: int) -> list[dict]:
+        return [b for b in blocks if b["category"] != "VOL"] + [{"category": "VOL", "model": "VOL", "knobs": {"VOL": level}}]
+
+    def _knobs_cached(self, category: str, model: str) -> list[dict]:
+        cache = self.__dict__.setdefault("_knob_cache", {})
+        if (category, model) not in cache:
+            cache[(category, model)] = self.knobs(category, model)
+        return cache[(category, model)]
 
     def apply_commands(self, blocks: list[dict]) -> list[list[str]]:
         used = {}
@@ -247,16 +258,24 @@ class MvaveDevice(PedalDevice):
             if b["category"] in used:
                 raise RenderError(f"the MK-300 has one {b['category']} block; two were asked")
             used[b["category"]] = b
+        used.setdefault("VOL", self.with_level([], self.output_levels[0])[0])
         cmds = []
         for blk in self.BLOCKS:
             b = used.get(blk)
             if b is None:
-                if blk != "VOL":
-                    cmds.append(["enable", blk, "off"])
+                cmds.append(["enable", blk, "off"])
+                continue
+            if blk == "VOL":
+                cmds.append(["param", blk, "VOL", f"{b['knobs']['VOL']:g}"])
+                cmds.append(["enable", blk, "on"])
                 continue
             cmds.append(["model", blk, b["model"]])
-            for name, v in b["knobs"].items():
-                cmds.append(["param", blk, name, f"{v:g}"])
+            # every knob is written: one left out keeps the value of whatever preset was loaded
+            for k in self._knobs_cached(blk, b["model"]):
+                v = b["knobs"].get(k["name"])
+                if v is None:
+                    v = k["default"] if k["default"] is not None else (k["min"] + k["max"]) / 2
+                cmds.append(["param", blk, k["name"], f"{v:g}"])
             cmds.append(["enable", blk, "on"])
         return cmds
 
