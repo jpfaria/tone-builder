@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+import soundfile as sf
 
 from tone_builder import library, recorder
 
@@ -126,3 +127,42 @@ def test_the_noise_read_on_the_take_wins_over_the_one_read_on_the_saved_note():
     piece = np.concatenate([tail, note]).astype(np.float32)
     assert recorder.measure_and_judge(piece, sr, 64)["reasons"] == ["snr"]
     assert recorder.measure_and_judge(piece, sr, 64, recorded_snr_db=13.5)["accepted"] is True
+
+
+def _blocks(x: np.ndarray, sr: int, block_s: float = 0.5):
+    n = int(block_s * sr)
+    for i in range(0, len(x), n):
+        yield x[i:i + n]
+
+
+def test_listen_string_stops_by_itself_once_every_note_of_the_string_is_in(tmp_path: Path):
+    sr = 48000
+    expected = library.expected_midis(1)
+    x = np.concatenate([_string_take(expected, sr), np.zeros(60 * sr, dtype=np.float32)])
+    heard: list[str] = []
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
+    assert report == {"accepted": expected, "rejected": {}, "missing": []}
+    assert len(library.list_notes(tmp_path, "g", "pos1")) == 16
+    assert any("E4" in line for line in heard)                       # each note is announced as it lands
+    raw = sf.read(tmp_path / "g" / "pos1" / "_takes" / "c1.wav")[0]
+    assert len(raw) < len(x) - 50 * sr                               # it did not sit through the silence
+
+
+def test_listen_string_takes_a_wrong_note_again_in_the_same_session(tmp_path: Path):
+    sr = 48000
+    expected = library.expected_midis(1)
+    first = _string_take([m for m in expected if m != 70], sr, clip_midi=66)    # 70 skipped, 66 clipped
+    again = _string_take([66, 70], sr)
+    x = np.concatenate([first, np.zeros(3 * sr, dtype=np.float32), again, np.zeros(60 * sr, dtype=np.float32)])
+    heard: list[str] = []
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=heard.append)
+    assert report == {"accepted": expected, "rejected": {}, "missing": []}
+    assert any("saturation" in line for line in heard)
+
+
+def test_listen_string_gives_up_after_a_long_silence_and_says_what_is_missing(tmp_path: Path):
+    sr = 48000
+    x = np.concatenate([_string_take([64, 65], sr), np.zeros(60 * sr, dtype=np.float32)])
+    report = recorder.listen_string(tmp_path, "g", "pos1", 1, _blocks(x, sr), sr, say=lambda _: None)
+    assert report["accepted"] == [64, 65]
+    assert report["missing"] == list(range(66, 80))

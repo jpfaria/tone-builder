@@ -18,6 +18,7 @@ PREROLL_S = 0.02
 METRIC_PREROLL_S = 0.15  # the noise floor is read before the attack; 20 ms of pre-roll leaves nothing to read
 SUSTAIN_FRAC = 0.75
 NOTE_S = 0.6
+RING_S = 2.0   # a note ends at the next attack, or after this much of it
 CONF_MIN = 0.8
 MIN_ESTIMATES = 6
 # Plain autocorrelation slips to a subharmonic of the note on a bridge pickup: string 1 of the PRS read f/2 on
@@ -61,14 +62,35 @@ def _name(estimates: np.ndarray, expected: list[int]) -> int | None:
     return best if best_score[0] >= SUSTAIN_FRAC else None
 
 
+def note_spans_all(signal: np.ndarray, sr: int, expected: list[int]) -> list[tuple[int, int, int]]:
+    """(midi, attack, end) of every attack that names an expected note, in order."""
+    return _spans_of(_named_attacks(signal, sr, expected)[0], len(signal), sr)
+
+
+def _spans_of(found: list[tuple[int, int]], x_len: int, sr: int) -> list[tuple[int, int, int]]:
+    return [(midi, a, min(x_len, found[i + 1][0] if i + 1 < len(found) else a + int(RING_S * sr)))
+            for i, (a, midi) in enumerate(found)]
+
+
 def note_spans(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, tuple[int, int]]:
     """Attack and end sample of each expected note; the longest one when a note was played twice."""
+    spans: dict[int, tuple[int, int]] = {}
+    for midi, a, end in note_spans_all(signal, sr, expected):
+        if midi not in spans or end - a > spans[midi][1] - spans[midi][0]:
+            spans[midi] = (a, end)
+    return spans
+
+
+def _named_attacks(signal: np.ndarray, sr: int, expected: list[int]) -> tuple[list[tuple[int, int]], list[int]]:
+    """(attack, midi) of every attack that names an expected note, and the attacks too recent to be named yet."""
     x = np.asarray(signal, dtype=np.float64)
     frame, hop = int(round(ta_notes.FRAME_S * sr)), int(round(ta_notes.HOP_S * sr))
     span_n = int(round(NOTE_S * sr))
     found: list[tuple[int, int]] = []
+    pending: list[int] = []
     for a in ta_notes.note_onsets(x, sr):
         if a + span_n >= len(x):
+            pending.append(a)
             continue
         est = [ta_notes.hz_to_midi(f0) for f0, conf in
                (ta_notes.pitch_autocorr(x[a + k:a + k + frame], sr) for k in range(0, span_n - frame, hop))
@@ -76,16 +98,31 @@ def note_spans(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, tu
         midi = _name(np.array(est), expected) if len(est) >= MIN_ESTIMATES else None
         if midi is not None:
             found.append((a, midi))
-    spans: dict[int, tuple[int, int]] = {}
-    for i, (a, midi) in enumerate(found):
-        end = min(len(x), found[i + 1][0] if i + 1 < len(found) else a + int(2.0 * sr))
-        if midi not in spans or end - a > spans[midi][1] - spans[midi][0]:
-            spans[midi] = (a, end)
-    return spans
+    return found, pending
 
 
 def _piece(signal: np.ndarray, sr: int, span: tuple[int, int], preroll_s: float) -> np.ndarray:
     return signal[max(0, span[0] - int(round(preroll_s * sr))):span[1]]
+
+
+def _beep(sr: int) -> np.ndarray:
+    t = np.arange(int(BEEP_S * sr)) / sr
+    return np.tile((0.2 * np.sin(2 * np.pi * 1000 * t))[:, None], (1, 2)).astype(np.float32)
+
+
+def live_blocks(device, channel: int, sr: int = SR, block_s: float = 0.5, max_s: float = 600.0):
+    """Beep on outputs 1-2, then yield input `channel` (1-based) of `device` block by block until the reader stops."""
+    import queue
+
+    import sounddevice as sd
+
+    sd.play(_beep(sr), samplerate=sr, device=device, mapping=[1, 2], blocking=True)
+    q: queue.Queue = queue.Queue()
+    # a raw stream has no channel mapping: open the inputs up to `channel` and keep the last one
+    with sd.InputStream(samplerate=sr, device=device, channels=channel, dtype="float32",
+                        blocksize=int(block_s * sr), callback=lambda data, *_: q.put(data[:, channel - 1].copy())):
+        for _ in range(int(max_s / block_s)):
+            yield q.get(timeout=5.0)
 
 
 def cut_notes(signal: np.ndarray, sr: int, expected: list[int]) -> dict[int, np.ndarray]:
@@ -103,32 +140,90 @@ def measure_and_judge(piece: np.ndarray, sr: int, midi: int, recorded_snr_db: fl
     return {**{k: metrics[k] for k in _METRIC_KEYS}, **judge_take(metrics, midi)}
 
 
+def _save_note(pos_dir: Path, med: dict, string: int, midi: int, signal: np.ndarray,
+               span: tuple[int, int], sr: int) -> dict:
+    """Judge one note of a take and, accepted, write it. Returns its measurement entry."""
+    entry = measure_and_judge(_piece(signal, sr, span, METRIC_PREROLL_S), sr, midi)
+    name = library.note_filename(string, midi)
+    med[name[:-4]] = entry
+    if entry["accepted"]:
+        sf.write(pos_dir / name, _piece(signal, sr, span, PREROLL_S), sr, subtype="FLOAT")
+    return entry
+
+
+def _open_position(root: Path, guitar: str, position: str) -> tuple[Path, Path, dict]:
+    pos_dir = root / guitar / position
+    (pos_dir / "_takes").mkdir(parents=True, exist_ok=True)   # the raw take: a missing note cannot be diagnosed without it
+    med_path = pos_dir / "medicao.yaml"
+    return pos_dir, med_path, library.read_yaml(med_path) if med_path.exists() else {}
+
+
 def save_string(root: Path, guitar: str, position: str, string: int, signal: np.ndarray, sr: int) -> dict:
     expected = library.expected_midis(string)
-    pos_dir = root / guitar / position
-    pos_dir.mkdir(parents=True, exist_ok=True)
-    med_path = pos_dir / "medicao.yaml"
-    med = library.read_yaml(med_path) if med_path.exists() else {}
+    pos_dir, med_path, med = _open_position(root, guitar, position)
     report: dict = {"accepted": [], "rejected": {}, "missing": []}
-    takes = pos_dir / "_takes"   # the raw take: a missing note cannot be diagnosed without it
-    takes.mkdir(exist_ok=True)
-    sf.write(takes / f"c{string}.wav", signal, sr, subtype="FLOAT")
+    sf.write(pos_dir / "_takes" / f"c{string}.wav", signal, sr, subtype="FLOAT")
     spans = note_spans(signal, sr, expected)
-    cuts = {m: _piece(signal, sr, sp, PREROLL_S) for m, sp in spans.items()}
     for midi in expected:
-        if midi not in cuts:
+        if midi not in spans:
             report["missing"].append(midi)
             continue
-        entry = measure_and_judge(_piece(signal, sr, spans[midi], METRIC_PREROLL_S), sr, midi)
-        name = library.note_filename(string, midi)
-        med[name[:-4]] = entry
+        entry = _save_note(pos_dir, med, string, midi, signal, spans[midi], sr)
         if entry["accepted"]:
-            sf.write(pos_dir / name, cuts[midi], sr, subtype="FLOAT")
             report["accepted"].append(midi)
         else:
             report["rejected"][midi] = entry["reasons"]
     library.write_yaml(med_path, med)
     return report
+
+
+IDLE_S = 12.0        # silence after the last attack that ends the session with notes still missing
+FIRST_NOTE_S = 30.0  # time to get to the guitar before the first note
+KEEP_S = 0.3         # audio kept before the next window: the attack detector needs the rise, the noise read its silence
+
+
+def listen_string(root: Path, guitar: str, position: str, string: int, blocks, sr: int, say=print) -> dict:
+    """Listen to one string until its 16 notes are in: each note is named, judged and announced as it closes.
+
+    Any order, any pace; a note played again replaces the one before, so a wrong one is simply played again.
+    Ends by itself when nothing is missing, or after IDLE_S without an attack. `blocks` yields mono audio.
+    """
+    expected = library.expected_midis(string)
+    pos_dir, med_path, med = _open_position(root, guitar, position)
+    state: dict[int, list[str] | None] = {}      # midi -> None when accepted, else the reasons of its last try
+    buf = np.zeros(0, dtype=np.float32)
+    done = 0                                     # samples of buf already settled
+    last_attack = 0
+    for block in blocks:
+        buf = np.concatenate([buf, np.asarray(block, dtype=np.float32)])
+        window = buf[done:]
+        settled = 0
+        found, pending = _named_attacks(window, sr, expected)
+        for midi, a, end in _spans_of(found, len(window), sr):
+            last_attack = max(last_attack, done + a)
+            if end == len(window) and len(window) - a < int(RING_S * sr):
+                break                            # still ringing: wait for more audio
+            if any(a < p < end for p in pending):
+                break                            # an attack too recent to be named may be where this note ends
+            entry = _save_note(pos_dir, med, string, midi, window, (a, end), sr)
+            state[midi] = None if entry["accepted"] else entry["reasons"]
+            name = library.note_filename(string, midi)[:-4]
+            to_go = sum(1 for m in expected if state.get(m, []) is not None)
+            say(f"ok  {name}   ({to_go} to go)" if entry["accepted"]
+                else f"NO  {name}: {', '.join(entry['reasons'])} - play it again")
+            settled = end
+        if settled:
+            library.write_yaml(med_path, med)
+            done += max(0, settled - int(KEEP_S * sr))
+        if all(state.get(m, []) is None for m in expected):
+            break
+        if (len(buf) - last_attack) / sr > (IDLE_S if state else FIRST_NOTE_S):
+            break
+    sf.write(pos_dir / "_takes" / f"c{string}.wav", buf, sr, subtype="FLOAT")
+    library.write_yaml(med_path, med)
+    return {"accepted": [m for m in expected if m in state and state[m] is None],
+            "rejected": {m: state[m] for m in expected if state.get(m)},
+            "missing": [m for m in expected if m not in state]}
 
 
 def save_chord(root: Path, guitar: str, position: str, voicing: list[tuple[int, int]],

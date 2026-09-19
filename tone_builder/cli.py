@@ -89,9 +89,15 @@ def _record(a) -> int:
     strings = [6, 5, 4, 3, 2, 1] if a.string == "all" else [int(a.string)]
     bad = False
     for string in strings:   # each string is its own take: the same pitch exists on more than one string
-        print(f"string {string}: play after the beep ({a.seconds:.0f} s)", flush=True)
-        x = recorder.record(a.seconds, a.device, a.channel)
-        rep = recorder.save_string(_root(a), a.guitar, a.position, string, x, recorder.SR)
+        if a.seconds is None:   # listens: names each note as it lands, ends when the string is complete
+            print(f"string {string}: play after the beep, any order; a wrong note is played again", flush=True)
+            rep = recorder.listen_string(_root(a), a.guitar, a.position, string,
+                                         recorder.live_blocks(a.device, a.channel), recorder.SR,
+                                         say=lambda line: print(line, flush=True))
+        else:
+            print(f"string {string}: play after the beep ({a.seconds:.0f} s)", flush=True)
+            x = recorder.record(a.seconds, a.device, a.channel)
+            rep = recorder.save_string(_root(a), a.guitar, a.position, string, x, recorder.SR)
         print(f"accepted: {rep['accepted']}")
         print(f"rejected: {rep['rejected']}")
         print(f"missing:  {rep['missing']}", flush=True)
@@ -305,7 +311,8 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("string", help="1-6, or `all`: the six strings in a row, 6 first, one beep each")
     rp.add_argument("--device")
     rp.add_argument("--channel", type=int)
-    rp.add_argument("--seconds", type=float, default=45.0)
+    rp.add_argument("--seconds", type=float, default=None,
+                    help="a fixed-length take instead of listening until the string is complete")
     rp.add_argument("--root")
     rcp = lib.add_parser("record-chord")
     rcp.add_argument("guitar")

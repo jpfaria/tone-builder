@@ -86,3 +86,12 @@ As mesmas tomadas passaram de 10 e 13 aceitas em 16 para 16 em 16 (`tests/data/c
 - O detector de ataques do tone-analyzer perdia o ataque que sobe em dois blocos (6ª corda, casas 1 e 11:
   envelope 0,015 → 0,197 → 0,247). Corrigido lá (`note_onsets`), commit d06464e. Com as três correções as
   quatro tomadas brutas guardadas dão 16 notas em 16.
+
+## Gravador de corda escuta em vez de contar tempo (19/09/2026)
+
+Pedido do João: "não tinha que ser por tempo e sim por detecção". `library record` agora escuta
+(`recorder.listen_string`): nomeia e julga cada nota quando ela fecha, avisa no terminal, termina sozinho
+quando as 16 notas da corda entraram (ou após 12 s sem ataque) e aceita a nota errada tocada de novo na
+mesma sessão. Invariante medida: uma nota só fecha pelo tempo (2 s) se não houver um ataque recente demais
+para ser nomeado dentro dela; sem isso a janela avançava por cima do ataque seguinte e perdia 1 a 4 notas
+por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 16 em 16.

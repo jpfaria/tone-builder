@@ -182,8 +182,20 @@ def test_record_all_takes_the_six_strings_in_a_row_from_the_lowest(tmp_path: Pat
         return _string_take(library.expected_midis(string)[:2], recorder.SR)
 
     monkeypatch.setattr(recorder, "record", fake_record)
-    rc = cli.main(["library", "record", "g", "pos1", "all", "--device", "x", "--channel", "1", "--root", str(tmp_path)])
+    rc = cli.main(["library", "record", "g", "pos1", "all", "--device", "x", "--channel", "1", "--seconds", "45",
+                   "--root", str(tmp_path)])
     assert asked == [6, 5, 4, 3, 2, 1]
     assert len(library.list_notes(tmp_path, "g", "pos1")) == 12
     assert rc == 1                                  # notes are missing on every string
     assert "string 6" in capsys.readouterr().out
+
+
+def test_record_listens_by_default_and_ends_when_the_string_is_complete(tmp_path: Path, capsys, monkeypatch):
+    from tests.test_recorder import _blocks, _string_take
+    from tone_builder import recorder
+
+    take = np.concatenate([_string_take(library.expected_midis(1), recorder.SR), np.zeros(60 * recorder.SR, dtype=np.float32)])
+    monkeypatch.setattr(recorder, "live_blocks", lambda device, channel: _blocks(take, recorder.SR))
+    assert cli.main(["library", "record", "g", "pos1", "1", "--device", "x", "--channel", "1", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "ok  c1-64-E4" in out and "(0 to go)" in out
