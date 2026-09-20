@@ -14,6 +14,9 @@ from tone_builder.render import Renderer, RenderError
 BOOSTS_DB = (0, 12, 18)
 
 
+HEADROOM = 10 ** (-0.5 / 20)
+
+
 def measure_margin(render: Renderer, dis: list[Path], workdir: Path) -> dict:
     workdir.mkdir(parents=True, exist_ok=True)
     out = {}
@@ -22,7 +25,9 @@ def measure_margin(render: Renderer, dis: list[Path], workdir: Path) -> dict:
         for i, di in enumerate(dis):
             x, sr = sf.read(str(di), always_2d=False)
             src = workdir / f"{i:02d}-{Path(di).stem}+{boost}.wav"
-            sf.write(str(src), np.clip(x * 10 ** (boost / 20), -1, 1), sr, subtype="FLOAT")
+            # a DI cannot be louder than full scale: past it the interface would have clipped the guitar itself
+            gain = min(10 ** (boost / 20), HEADROOM / (float(np.abs(x).max()) + 1e-12))
+            sf.write(str(src), x * gain, sr, subtype="FLOAT")
             wet = workdir / f"wet{i:02d}+{boost}.wav"
             render(src, wet)
             if not wet.exists():

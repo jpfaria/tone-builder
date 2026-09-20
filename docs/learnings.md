@@ -136,3 +136,9 @@ com `_` (`blues_od`) nunca batia com o nome do modelo (`1BLUES_OD`).
 
 O nome da preset na MK-300 tem 20 caracteres: `DIG - John Mayer - Gravity (solo)` não cabe, foi
 gravada como `DIG Gravity Solo` na slot 104.
+
+## Margem: DI quente não pode ser reforçado além do fundo de escala (20/09/2026)
+
+O teste de margem reforçava o DI em +12/+18 dB com `np.clip`. Com humbucker (DI a −6,6 dBFS) o DI já saía
+ceifado ANTES do aparelho; os topos planos voltavam como "saturação" em qualquer nível de saída, o build baixava
+o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O reforço agora para em −0,5 dBFS.
