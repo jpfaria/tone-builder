@@ -75,7 +75,8 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     options, unresolved = device.resolve(research)
     if unresolved:
         raise Unresolved(unresolved)
-    if not options.get("amp"):
+    fixed = set(getattr(device, "fixed_classes", ()) or ())
+    if not options.get("amp") and "amp" not in fixed:
         raise ValueError("the research names no amp with a model in the device catalog")
     stats: dict = {}
     target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
@@ -91,7 +92,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
                          f"with enough harmonics ({seen()})")
 
     workdir = Path(workdir)
-    state: dict[str, list[dict]] = {"amp": options["amp"][0].blocks}
+    state: dict[str, list[dict]] = {"amp": options["amp"][0].blocks} if options.get("amp") else {}
     if options.get("cab"):
         state["cab"] = options["cab"][0].blocks
 
@@ -110,6 +111,12 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     classes: dict[str, dict] = {}
 
     def step(klass: str, slot: str, opts: list[Option], extra_units: set[str] = frozenset()) -> dict:
+        if klass in fixed:      # chosen by hand on the device: never written, never measured
+            units = [b["unit"] for b in (research.get("blocks") or []) if b["class"] == klass]
+            entry = {"status": "fixed_on_device", "sourced": None, "unsourced_best": None, "measured": {},
+                     "errors": [], "reason": f"chosen on the device: {', '.join(units) or klass}"}
+            classes[klass] = entry
+            return entry
         by_name = {o.name: o for o in opts}
         cands = [Candidate(o.name, klass, o.unit, device.renderer(assemble({**state, slot: o.blocks})),
                            o.gain_reduction_db) for o in opts]

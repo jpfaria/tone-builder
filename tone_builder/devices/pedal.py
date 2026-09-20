@@ -78,9 +78,17 @@ class PedalDevice:
     exe = ""
     categories: dict[str, tuple[str, ...]] = {}
 
-    def __init__(self, workdir: Path, runner=None):
+    def __init__(self, workdir: Path, runner=None, keep_blocks: tuple[str, ...] = ()):
+        """keep_blocks: blocks chosen by hand on the pedal. tone-builder never writes them —
+        the MK-300's NAM (V73) lives outside the preset image, so `load` or `model AMP ...`
+        drops it. Their classes are reported as fixed on the device instead of measured."""
         self.workdir = Path(workdir)
         self.run = runner or Runner(self.exe)
+        self.keep_blocks = tuple(b.upper() for b in keep_blocks)
+        # a class whose block is kept is not measured at all: on the Ampero the amp spans
+        # AMP and PRE AMP, and keeping either means the amp was chosen by hand
+        self.fixed_classes = {k for k, cats in self.categories.items()
+                              if any(c in self.keep_blocks for c in cats)}
 
     # --- to be provided by each pedal -------------------------------------------------
     def find(self, category: str, unit: str) -> list[str]:
@@ -117,7 +125,7 @@ class PedalDevice:
         options: dict[str, list] = {}
         unresolved = []
         for b in research.get("blocks") or []:
-            if b.get("absent_from_catalog"):
+            if b.get("absent_from_catalog") or b["class"] in self.fixed_classes:
                 continue
             klass = b["class"]
             found = []
@@ -163,8 +171,8 @@ class AmperoDevice(PedalDevice):
     EQ_MODEL = "Graphic EQ"
     TIE = 0.05
 
-    def __init__(self, workdir: Path, work_patch: str, runner=None):
-        super().__init__(workdir, runner)
+    def __init__(self, workdir: Path, work_patch: str, runner=None, keep_blocks: tuple[str, ...] = ()):
+        super().__init__(workdir, runner, keep_blocks)
         self.work_patch = work_patch
 
     def find(self, category: str, unit: str) -> list[str]:
@@ -269,6 +277,8 @@ class MvaveDevice(PedalDevice):
         used.setdefault("VOL", self.with_level([], self.output_levels[0])[0])
         cmds = []
         for blk in self.BLOCKS:
+            if blk in self.keep_blocks:      # chosen by hand on the pedal: left alone
+                continue
             b = used.get(blk)
             if b is None:
                 cmds.append(["enable", blk, "off"])

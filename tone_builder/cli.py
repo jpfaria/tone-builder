@@ -164,10 +164,10 @@ def _build(a) -> int:
             print("build: --work-patch is required for ampero2 (an empty patch to build and re-amp in)",
                   file=sys.stderr)
             return 2
-        device = AmperoDevice(out / "work", a.work_patch)
+        device = AmperoDevice(out / "work", a.work_patch, keep_blocks=tuple(a.keep_block or ()))
     elif a.device == "mvave":
         from tone_builder.devices.pedal import MvaveDevice
-        device = MvaveDevice(out / "work")
+        device = MvaveDevice(out / "work", keep_blocks=tuple(a.keep_block or ()))
     else:
         print(f"build: unknown device {a.device!r} (openrig, ampero2, mvave)", file=sys.stderr)
         return 2
@@ -368,6 +368,9 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--out", required=True)
     bp.add_argument("--plugins-root")
     bp.add_argument("--work-patch")
+    bp.add_argument("--keep-block", action="append", metavar="BLOCK",
+                    help="a pedal block chosen by hand on the device (e.g. AMP with a NAM loaded): "
+                         "never written, never measured; its class is reported as fixed on the device")
     bp.add_argument("--root")
     bp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
     bp.add_argument("--to", dest="t_to", help="target attacks before M:SS")

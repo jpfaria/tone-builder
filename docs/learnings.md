@@ -142,3 +142,12 @@ gravada como `DIG Gravity Solo` na slot 104.
 O teste de margem reforçava o DI em +12/+18 dB com `np.clip`. Com humbucker (DI a −6,6 dBFS) o DI já saía
 ceifado ANTES do aparelho; os topos planos voltavam como "saturação" em qualquer nível de saída, o build baixava
 o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O reforço agora para em −0,5 dBFS.
+
+- **MK-300 V73 e NAM (19-20/09/2026, *Sweet Child O' Mine*):** o NAM escolhido na pedaleira **não**
+  aparece na imagem do preset (448 bytes): entre um preset com NAM e um vazio só mudam nome, `AMP
+  enabled` e um knob. Carregar o preset por MIDI (`mvave load`) perde o NAM — medido: re-amp a
+  13,9 dB do NAM do OpenRig carregando por MIDI, contra 5,1 dB com o preset escolhido no pé.
+  Escrever `model AMP ...` também o derruba. Por isso `--keep-block AMP`: o bloco não é escrito nem
+  medido, e a classe sai no relatório como `fixed_on_device`.
+  Os índices de AMP acima do catálogo (120+) não são slots de NAM: entregam o DI seco atenuado
+  (−35 dBFS, 6,3 dB do DI puro, contra −6,2 dBFS de um amp de fábrica).

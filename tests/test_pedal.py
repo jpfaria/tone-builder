@@ -153,3 +153,19 @@ def test_a_failed_device_call_reports_the_end_of_its_output(tmp_path):
     dev = MvaveDevice(tmp_path, runner=lambda args: (1, "Traceback\n" + "x" * 500 + "\nRuntimeError: the real cause"))
     with pytest.raises(RenderError, match="the real cause"):
         dev._ok(["show"])
+
+def test_mvave_never_touches_a_block_kept_on_the_device(tmp_path):
+    # MK-300 V73: a NAM chosen on the pedal is not in the preset image, so `load` and
+    # `model AMP ...` wipe it (19/09/2026: re-amp went from 5.1 dB to 13.9 dB off the NAM).
+    dev = MvaveDevice(tmp_path, FakeMvave(), keep_blocks=("AMP",))
+    cmds = dev.apply_commands([{"category": "CAB", "model": "10MAR1960_412", "knobs": {}}])
+    assert not any(c[1] == "AMP" for c in cmds if len(c) > 1)
+    assert ["model", "CAB", "10MAR1960_412"] in cmds
+    assert dev.fixed_classes == {"amp"}
+
+
+def test_ampero_keeps_a_block_chosen_on_the_device(tmp_path):
+    dev = AmperoDevice(tmp_path, "A60-5", FakeAmpero(), keep_blocks=("AMP",))
+    assert dev.fixed_classes == {"amp"}
+    assert not any(len(c) > 2 and c[2] == "AMP" for c in dev.apply_commands(
+        [{"category": "DRV", "model": "Blues Butter", "knobs": {"Gain": 40}}]))

@@ -227,3 +227,14 @@ def test_stacked_drives_the_device_cannot_hold_gets_a_reason(tmp_path):
     out = build_tone(disc, disc, by_midi, research, dev, tmp_path / "w", "song")
     assert "one drive block" in out["report"]["classes"]["stacked_drives"]["reason"]
     assert "stacked_drives" not in out["report"]["missing"]
+
+
+def test_amp_kept_on_the_device_builds_without_an_amp_candidate(tmp_path):
+    """MK-300 with a NAM chosen by hand: the amp never enters the battery, the rest still does."""
+    disc, by_midi = _inputs(tmp_path)
+    dev = FakeDevice({"single_drive": [_opt("ts", "single_drive", "TS", [0, 2, -2, 2, -2, 2, -2, 2])]})
+    dev.fixed_classes = {"amp"}
+    out = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w", "n")
+    amp = out["report"]["classes"]["amp"]
+    assert amp["status"] == "fixed_on_device"
+    assert out["report"]["classes"]["single_drive"]["status"] == "measured"
