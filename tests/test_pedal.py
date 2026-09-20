@@ -134,3 +134,22 @@ def test_mvave_sets_every_knob_and_the_output_level(tmp_path):
     assert ["param", "VOL", "VOL", "100"] in cmds
     low = dev.apply_commands(dev.with_level([{"category": "AMP", "model": "61DUMBLE_FG", "knobs": {}}], 25))
     assert ["param", "VOL", "VOL", "25"] in low and ["param", "VOL", "VOL", "100"] not in low
+
+
+def test_runner_retries_a_device_call_that_crashes_once(tmp_path):
+    # MK-300, 20/09/2026: one `mvave param AMP Pres 50` in hundreds died with a traceback and ended a build
+    from tone_builder.devices.pedal import Runner
+    flag = tmp_path / "crashed-once"
+    exe = tmp_path / "dev"
+    exe.write_text(f"#!/bin/sh\nif [ ! -e {flag} ]; then touch {flag}; echo Traceback >&2; exit 1; fi\necho ok $@\n")
+    exe.chmod(0o755)
+    code, out = Runner(str(exe), pause_s=0)(["param", "AMP", "Pres", "50"])
+    assert code == 0 and "ok param" in out
+
+
+def test_a_failed_device_call_reports_the_end_of_its_output(tmp_path):
+    from tone_builder.devices.pedal import MvaveDevice
+    from tone_builder.render import RenderError
+    dev = MvaveDevice(tmp_path, runner=lambda args: (1, "Traceback\n" + "x" * 500 + "\nRuntimeError: the real cause"))
+    with pytest.raises(RenderError, match="the real cause"):
+        dev._ok(["show"])
