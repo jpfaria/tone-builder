@@ -167,7 +167,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     for o in options.get("compressor", []):
         o.gain_reduction_db = device.gain_reduction(o.blocks, [a["di"] for a in assignments], workdir / "gr" / o.name)
         comps.append(o)
-    step("compressor", "compressor", comps)
+    note_absent(step("compressor", "compressor", comps), "compressor")
 
     current = measure(device.renderer(assemble(state)), assignments, workdir / "eq-base")
     gains = eq_gains(current["points"], fit)
@@ -177,6 +177,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
 
     tfx = options.get("time_fx", [])
     tfx_entry = step("time_fx", "time_fx", tfx)
+    note_absent(tfx_entry, "time_fx")
     if tfx:
         # a time/feel block named by the research ships even when the harmonic number cannot see it
         seen, blocks = set(), []

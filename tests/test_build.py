@@ -106,6 +106,19 @@ def test_unit_without_catalog_model_becomes_the_class_reason(tmp_path):
     assert out["report"]["absent_from_catalog"] == {"cab": ["Dumble 4x12"]}
 
 
+@pytest.mark.parametrize("klass,unit", [("time_fx", "Uni-Vibe"), ("compressor", "Urei 1176")])
+def test_absent_unit_is_the_reason_for_every_class_not_only_amp_and_cab(tmp_path, klass, unit):
+    # Alive, 19/09/2026: a Uni-Vibe with no OpenRig model left time_fx with no number and no reason -> "parcial"
+    disc, by_midi = _inputs(tmp_path)
+    r = {**RESEARCH, "blocks": RESEARCH["blocks"] + [
+        {"class": klass, "unit": unit, "era": "record", "sources": ["https://d"], "absent_from_catalog": True}],
+         "not_found": [n for n in RESEARCH["not_found"] if n["class"] != klass]}
+    dev = FakeDevice({"amp": [_opt("amp", "amp", "Amp", [0, 4, -4, 4, -4, 4, -4, 4])]})
+    out = build_tone(disc, disc, by_midi, r, dev, tmp_path / "w", "s")
+    assert unit in out["report"]["classes"][klass]["reason"]
+    assert klass not in out["report"]["missing"]
+
+
 import re
 
 from tone_builder import library as lib_mod
