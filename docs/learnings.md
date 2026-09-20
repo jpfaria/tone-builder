@@ -105,3 +105,34 @@ por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 1
   que a corda não tem denuncia: duas notas fora da faixa da corda (até 5 semitons abaixo ou acima) → a tomada
   inteira é desfeita, o áudio vai para `_takes/c<n>-wrong-string.wav` e a mesma corda é pedida de novo.
   22 tomadas reais sem alarme falso; as três tomadas erradas foram pegas.
+
+## Primeiro timbre medido na MK-300 (Gravity, 19/09/2026)
+
+`build --device mvave` de ponta a ponta, com `verify` na preset gravada: 9,21 dB esperados contra
+9,26 dB medidos (três repetições, desvio-padrão 0,014 dB). Cadeia final: só o `61DUMBLE_FG`, com
+todos os knobs em 50 e o VOL em 70. O drive (`1BLUES_OD`) e o EQ ajustado foram recusados pela
+retenção. No OpenRig o mesmo método e a mesma pesquisa deram 7,76 dB.
+
+Três coisas que o primeiro build errou, e que a correção mede:
+
+- **Knob não escrito ficava com o valor da preset carregada.** O `apply_commands` só mandava os
+  knobs escolhidos; o resto vinha do buffer (a rodada de 19/09 mediu o Dumble com `Gain=80
+  Level=60 Middle=60` herdados da "DIG Alive Base"). Agora todo knob do bloco é escrito: o valor
+  escolhido, o default do catálogo, ou o meio da faixa quando o pedal não informa default (`?`).
+  Sem isso o número não é reprodutível nem transferível para outra preset.
+- **A saída estourava.** Com o nível herdado, o retorno USB passava de 0 dBFS já com o DI sem
+  ganho (26 amostras saturadas em +0 dB, 89 190 em +18 dB). O build agora baixa o último bloco da
+  cadeia (`output_levels`, o VOL na MK-300) até a margem de +18 dB passar — nível não é timbre. Com
+  VOL 70: pico −18,1 / −6,3 / −1,2 dBFS em +0/+12/+18, zero amostras saturadas.
+- **Classe sem número e sem motivo.** Os drives empilhados falhavam em todos os pares ("a MK-300
+  tem um bloco DS") e a classe saía vazia, o que derruba o relatório para `parcial` sem dizer
+  por quê. Quando nenhum par renderiza, o erro do aparelho vira o motivo da classe.
+
+Nome de unidade é por aparelho: `Dumble ODS John Mayer` e `Marshall BluesBreaker` resolvem no
+OpenRig e não na MK-300 (0,25 e 0,38, abaixo do corte de 0,5). A pesquisa foi copiada para
+`research-mvave.yaml` com `Dumble` e `Bluesbreaker` — mesmas fontes, nomes que o catálogo dela
+reconhece. O `Bluesbreaker` só passou a resolver depois de corrigir a `mvave`: um apelido escrito
+com `_` (`blues_od`) nunca batia com o nome do modelo (`1BLUES_OD`).
+
+O nome da preset na MK-300 tem 20 caracteres: `DIG - John Mayer - Gravity (solo)` não cabe, foi
+gravada como `DIG Gravity Solo` na slot 104.
