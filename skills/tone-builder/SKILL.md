@@ -27,19 +27,22 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 
 ## Flow
 
-1. **Research (step 0)** → `research.yaml` (format: `exemplos/gravity-john-mayer/research.yaml`).
-   Open every page; quote it. A search summary is not a source. Record rig ≠ tour rig.
-   Every class `single_drive stacked_drives boost compressor amp cab eq time_fx` is either a block
-   or a `not_found` entry with what was searched — or the report comes out `parcial`.
-   No page names the rig → ask the user to ask the player; the answer is a source:
-   `statement: {who, date, channel, quote}` on the block, instead of `sources`.
-   The source names a class but no unit ("compressor") → `unit: any`: every model of that class
-   competes (never for `time_fx`). A delay/reverb the source names only by class → the block's `unit` is the device unit the
-   user approved by ear, its amounts go in `params: {...}`, and a comment says who set them and
-   when; the number cannot see time effects. A brand alone ("Fender") is a unit: it opens every
-   capture of that brand.
-   A named unit with hundreds of captures and a tone the user calls clean or dirty →
-   `$TB linearity --device openrig --unit "<unit>" …` ranks its captures by measured cleanliness.
+1. **Research (step 0)** → the **`tone-builder:gear-researcher`** agent writes
+   `research.yaml` (format: `exemplos/gravity-john-mayer/research.yaml`), then the
+   **`tone-builder:research-auditor`** agent verifies it. Dispatch the researcher with `song`,
+   `artist`, `part` and the `research_path`; dispatch the auditor with that path; on `VERDICT: FAIL`
+   send its report back to the researcher as `audit_report` and audit again. Never build past a FAIL,
+   and never research the rig yourself in this conversation — the pages belong in their context, the
+   verdict in yours. Relay the auditor's uncovered classes and its `NOTE:` lines to the user.
+   Two parts (rhythm and solo) → two researchers at once, one file each.
+   What only you can supply, in the dispatch prompt:
+   - No page names the rig → ask the user to ask the player; the answer ships as
+     `statement: {who, date, channel, quote}` instead of `sources`.
+   - A delay or reverb named only by class → the `unit` is the device unit the user approved by ear
+     and its amounts go in `params: {...}`; pass them as `ear_params`. The number cannot see time
+     effects, so without them that class stays `not_found`.
+   - A named unit with hundreds of captures and a tone the user calls clean or dirty →
+     `$TB linearity --device openrig --unit "<unit>" …` ranks its captures by measured cleanliness.
 2. `$TB build --device openrig|ampero2|mvave --artist … --song … [--role guitars] [--disc … [--lead …]] --research … --guitar … --position …
    --name … --out ~/.tone-builder/<song>/<device>-v<N> [--plugins-root …] [--work-patch …]` — minutes to hours: run it
    in the background, one device at a time.

@@ -11,6 +11,9 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
    **do disco** separado do rig **de turnê**. Não achou é resultado: vai para `not_found` com o que
    foi buscado. A pesquisa decide quais blocos existem e quais unidades entram na lista; a medição
    só escolhe entre elas.
+   Quem pesquisa é o agent `gear-researcher`, em contexto próprio; quem confere é o
+   `research-auditor`, que abre cada URL citada e reprova bloco sem frase que o sustente. A
+   conversa principal não pesquisa: recebe o veredito.
 1. **Alvo = o disco, lido em cada frequência harmônica** — `tone_builder/target.py`.
    A pista separada só localiza onde a guitarra toca e qual é a nota.
    `--from M:SS --to M:SS` limita o alvo aos ataques dentro da janela; `--role rhythm|solo`
