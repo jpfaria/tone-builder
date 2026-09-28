@@ -166,3 +166,9 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   (o João: "não fica testando com coisa nada a ver, não podemos ficar chutando"). Quando a pedaleira não tem o
   modelo, sobe o IR/NAM da unidade pesquisada e o bloco da pesquisa ganha `ampero2: ["CAB:User IR 3"]` —
   esses são os únicos candidatos. E Plexi não tem knob "Gain": o ganho é o `Volume` (há `Output` depois).
+- **Ampero: editar só na cena 1 (28/09/2026, *Welcome to Paradise*):** `param`/`model`/`input-source` com a
+  pedaleira em outra cena derrubam o firmware v1.7.0 ("Record the error and restart: SceneNum == SCENE_1",
+  PresetInterface.c:2279) — aconteceu duas vezes, e o João teve de reiniciar. O `reamp` escreve o input source,
+  então também conta. Para medir o nível de cada cena: ficar na cena 1 e ligar nela, uma por vez, a
+  variação de cada cena (`powers 1 …`); só no fim gravar os `powers` de todas. A `ampero2` agora recusa
+  edição fora da cena 1 (hotone-ampero-2 2519fa1). O app editor Ampero II aberto também disputa o MIDI.
