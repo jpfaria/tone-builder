@@ -43,14 +43,15 @@ def resolve_exe(exe: str) -> list[str]:
 class Runner:
     """A device call that hangs is killed and retried: `mvave enable EQ on` once hung
     1h40 in rtmidi close_port (MK-300, 18/09/2026) with the command already sent. One that crashes is retried
-    too: one `mvave param` in hundreds died with a traceback and ended a build (20/09/2026)."""
+    too: one `mvave param` in hundreds died with a traceback and ended a build (20/09/2026). The pause
+    doubles: the Ampero answered 4-byte patch dumps for longer than three 2 s retries (28/09/2026)."""
 
-    def __init__(self, exe: str, timeout_s: float = 120, attempts: int = 3, pause_s: float = 2.0):
+    def __init__(self, exe: str, timeout_s: float = 120, attempts: int = 5, pause_s: float = 2.0):
         self.exe, self.timeout_s, self.attempts, self.pause_s = exe, timeout_s, attempts, pause_s
 
     def __call__(self, args: list[str]) -> tuple[int, str]:
         failed = None
-        for _ in range(self.attempts):
+        for n in range(self.attempts):
             try:
                 p = subprocess.run([*resolve_exe(self.exe), *args], capture_output=True, text=True,
                                    timeout=self.timeout_s)
@@ -59,7 +60,7 @@ class Runner:
             if p.returncode == 0:
                 return 0, (p.stdout or "") + (p.stderr or "")
             failed = (p.returncode, (p.stdout or "") + (p.stderr or ""))
-            time.sleep(self.pause_s)
+            time.sleep(self.pause_s * 2 ** n)
         if failed:
             return failed
         return 124, f"{self.exe} {' '.join(args)}: timed out {self.attempts}x after {self.timeout_s} s"
