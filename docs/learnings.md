@@ -177,3 +177,9 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   250 Hz; disco pico em 2 kHz) e o crest era 7,4 dB contra 10,2 (ganho demais — só a captura `gain_max`
   do NAM Dookie tinha subido). O desvio por harmônico em 8 ataques não viu; o EQ foi rejeitado pela
   retenção. Agora a skill exige a checagem do riff antes de entregar. O João: "pq vc não fez isso desde o início?"
+- **Riff check resolveu o que o build não viu (28/09/2026, *Welcome to Paradise*, Ampero A28-1):** EQ ajustado
+  pelo espectro do riff inteiro (8 bandas, 3 iterações de −0,8 × diferença) levou a pior banda 250 Hz–4 kHz de
+  4,6 → 1,9 dB (SLP+ Volume 80 + IR V30 ev_mix) e 4,7 → 2,5 dB (NAM Dookie max). O IR 1960BV V30 SM57 ficou
+  *mais escuro* que o ev_mix (−5,7 dB em 4 kHz). A Ampero recusa IR curto (734 amostras: ack com status 00,
+  nada no inventário): completar com silêncio até 200 ms. `powers` de uma cena às vezes não pega — conferir
+  com `show` antes de dar por salvo.
