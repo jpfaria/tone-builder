@@ -149,6 +149,25 @@ def _target(a) -> int:
     return 0 if t else 1
 
 
+def _released(a, fn, runner=None) -> int:
+    """The Ampero's edit buffer is borrowed on USB OUT 3/4 for re-amp: it goes back to the guitar
+    input when the command ends — success, error, Ctrl-C or kill (28/09/2026: build and verify left
+    the pedal silent for normal playing)."""
+    if getattr(a, "device", None) != "ampero2":
+        return fn(a)
+    import signal
+    from tone_builder.devices.pedal import Runner
+    old = signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    try:
+        return fn(a)
+    finally:
+        signal.signal(signal.SIGTERM, old)
+        code, text = (runner or Runner("ampero2"))(["input-source", "input"])
+        if code != 0:
+            print(f"AMPERO SILENT for normal playing (input source still usb34). Fix: ampero2 input-source input\n"
+                  f"{text.strip()[-300:]}", file=sys.stderr)
+
+
 def _build(a) -> int:
     import json
     from tone_builder.build import Unresolved, build_tone
@@ -404,11 +423,11 @@ def main(argv: list[str] | None = None) -> int:
     wp.add_argument("--saved", required=True, help="openrig: saved preset YAML; ampero2: patch (A30-3); mvave: preset number")
     a = p.parse_args(argv)
     if a.group == "verify":
-        return _verify(a)
+        return _released(a, _verify)
     if a.group == "linearity":
         return _linearity(a)
     if a.group == "build":
-        return _build(a)
+        return _released(a, _build)
     if a.group == "target":
         return _target(a)
     if a.group == "validate":

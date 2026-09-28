@@ -181,3 +181,17 @@ def test_research_can_fix_the_pedal_models_and_duplicates_are_measured_once(tmp_
     assert unresolved == []
     assert sorted({o.name.split("[")[0] for o in opts["cab"]}) == ["CAB:User IR 3"]
     assert len({o.name for o in opts["cab"]}) == len(opts["cab"])
+
+
+def test_ampero_commands_give_the_pedal_back_to_the_guitar_even_on_error(tmp_path):
+    import argparse
+    import pytest
+    from tone_builder.cli import _released
+    calls = []
+
+    def boom(a):
+        raise RuntimeError("re-amp died")
+
+    with pytest.raises(RuntimeError):
+        _released(argparse.Namespace(device="ampero2"), boom, runner=lambda args: calls.append(args) or (0, ""))
+    assert calls == [["input-source", "input"]]
