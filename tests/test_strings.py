@@ -31,3 +31,21 @@ def test_note_without_library_pair_is_left_out(tmp_path):
     by = library_by_midi(_library(tmp_path), "g", "pos5")
     x = note(67)
     assert choose_strings(build_target(x, x, {67}), by, copy_render, tmp_path / "w") == []
+
+
+def test_a_di_goes_through_the_chain_once_however_many_attacks_use_it(tmp_path):
+    # on a pedal each render is a real re-amp: Welcome to Paradise has dozens of Eb5 attacks,
+    # and re-playing every voicing for each one sounded to the user like a stuck loop
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    target = build_target(x, x, {64})
+    calls = []
+
+    def counting_render(src, dst):
+        calls.append(src)
+        copy_render(src, dst)
+
+    out = choose_strings(target * 3, by, counting_render, tmp_path / "w")
+    assert len(out) == 3
+    assert len(calls) == 2
+    assert all(o["di"].name == "c2-64-E4.wav" for o in out)

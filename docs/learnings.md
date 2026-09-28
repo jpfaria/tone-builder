@@ -151,3 +151,8 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   medido, e a classe sai no relatório como `fixed_on_device`.
   Os índices de AMP acima do catálogo (120+) não são slots de NAM: entregam o DI seco atenuado
   (−35 dBFS, 6,3 dB do DI puro, contra −6,2 dBFS de um amp de fábrica).
+- **Escolha do DI repetia re-amp (28/09/2026, *Welcome to Paradise*, Ampero II):** `choose_dis`
+  renderizava cada digitação candidata de novo para cada ataque do alvo. No OpenRig isso só custa
+  CPU; na pedaleira cada render é um re-amp real, e um riff com dezenas de Eb5 virou o mesmo som em
+  loop por meia hora ("vc ta enviando o mesmo som sempre"). Agora cada DI passa pela cadeia uma vez
+  e é medido contra todos os ataques que o oferecem.

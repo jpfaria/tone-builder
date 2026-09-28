@@ -24,13 +24,19 @@ def library_by_midi(root: Path, guitar: str, position: str) -> dict[int, list[Pa
 
 
 def choose_dis(target: list[dict], candidates_for, render: Renderer, workdir: Path) -> list[dict]:
-    """candidates_for(entry) -> [(DI path, source)]; every candidate is rendered and measured."""
+    """candidates_for(entry) -> [(DI path, source)]; every candidate is rendered and measured.
+
+    A DI is rendered once and measured against every attack that offers it: on a pedal each
+    render is a real re-amp, and a riff repeats the same chord dozens of times."""
     out = []
+    renders: dict[str, object] = {}
     for i, entry in enumerate(target):
         alts: dict[str, float | None] = {}
         sources: dict[str, str] = {}
         for di, source in candidates_for(entry):
-            x = render_note(render, di, workdir, f"di-{i:02d}-{Path(di).stem}")
+            if str(di) not in renders:
+                renders[str(di)] = render_note(render, di, workdir, f"di-{i:02d}-{Path(di).stem}")
+            x = renders[str(di)]
             d = note_deviation(entry, x)
             alts[str(di)] = None if d is None else d["rms_db"]
             sources[str(di)] = source
