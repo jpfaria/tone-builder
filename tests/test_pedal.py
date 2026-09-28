@@ -169,3 +169,15 @@ def test_ampero_keeps_a_block_chosen_on_the_device(tmp_path):
     assert dev.fixed_classes == {"amp"}
     assert not any(len(c) > 2 and c[2] == "AMP" for c in dev.apply_commands(
         [{"category": "DRV", "model": "Blues Butter", "knobs": {"Gain": 40}}]))
+
+
+def test_research_can_fix_the_pedal_models_and_duplicates_are_measured_once(tmp_path):
+    dev = AmperoDevice(tmp_path, "A60-5", FakeAmpero())
+    research = {"blocks": [
+        {"class": "cab", "unit": "Marshall 4x12 V30", "ampero2": ["CAB:User IR 3"]},
+        {"class": "cab", "unit": "Marshall 4x12", "ampero2": ["CAB:User IR 3"]},
+    ]}
+    opts, unresolved = dev.resolve(research)
+    assert unresolved == []
+    assert sorted({o.name.split("[")[0] for o in opts["cab"]}) == ["CAB:User IR 3"]
+    assert len({o.name for o in opts["cab"]}) == len(opts["cab"])

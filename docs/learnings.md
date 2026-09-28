@@ -161,3 +161,8 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   fica impossível". Do Cifra Club saíram 7 power chords; o alvo caiu de 52 ataques × 441 voicings para
   8 ataques com a digitação da tab. O Cifra Club só entrega a tab com JS (curl volta 424 bytes): ler no
   browser (`self.__next_f` traz o texto da tab).
+- **Pedaleira: modelo fixado na pesquisa, nada de chute por nome (28/09/2026, *Welcome to Paradise*):** o
+  `resolve` da Ampero aceitou Checkboard, Greenback e EVM para "Marshall 4x12 V30" só por serem "Marshall 4x12"
+  (o João: "não fica testando com coisa nada a ver, não podemos ficar chutando"). Quando a pedaleira não tem o
+  modelo, sobe o IR/NAM da unidade pesquisada e o bloco da pesquisa ganha `ampero2: ["CAB:User IR 3"]` —
+  esses são os únicos candidatos. E Plexi não tem knob "Gain": o ganho é o `Volume` (há `Output` depois).

@@ -116,6 +116,10 @@ class PedalDevice:
         ks = self.knobs(category, model)
         out = [{}]
         gain = next((k for k in ks if k["name"].strip().lower() in GAIN_NAMES), None)
+        names = {k["name"].strip().lower() for k in ks}
+        if gain is None and names & {"output", "master"}:
+            # a non-master amp (Plexi): its Volume is the gain, the Output/Master is the level after it
+            gain = next((k for k in ks if k["name"].strip().lower().startswith("volume")), None)
         if gain is not None and gain["max"] > gain["min"]:
             for f in GAIN_SWEEP:
                 out.append({gain["name"]: round(gain["min"] + f * (gain["max"] - gain["min"]))})
@@ -130,14 +134,21 @@ class PedalDevice:
                 continue
             klass = b["class"]
             found = []
-            for cat in self.categories.get(klass, ()):
-                found += [(cat, m) for m in self.find(cat, b["unit"])]
+            if b.get(self.exe):
+                # models fixed for this device in the research ("NAM:NAM Slot 4", "CAB:User IR 3"):
+                # a capture or IR of the researched unit loaded on the pedal; nothing is guessed by name
+                found = [tuple(x.split(":", 1)) for x in b[self.exe]]
+            else:
+                for cat in self.categories.get(klass, ()):
+                    found += [(cat, m) for m in self.find(cat, b["unit"])]
             if not found:
                 unresolved.append(f"{klass}: {b['unit']}")
                 continue
             for cat, model in found:
                 for s in self.settings(cat, model):
                     label = ",".join(f"{k}={v}" for k, v in s.items())
+                    if any(o.name == f"{cat}:{model}[{label}]" for o in options.get(klass, [])):
+                        continue        # two researched units on the same model: measured once
                     options.setdefault(klass, []).append(Option(
                         name=f"{cat}:{model}[{label}]", klass=klass, unit=b["unit"],
                         blocks=[{"category": cat, "model": model, "knobs": s}]))
