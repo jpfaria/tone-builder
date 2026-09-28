@@ -27,7 +27,9 @@ from tone_builder.battery import Candidate, run_battery
 from tone_builder.margin import margin_ok, measure_margin
 from tone_builder.render import measure
 from tone_builder.research import validate
-from tone_builder.chords import di_candidates
+from tone_builder import cifra
+from tone_builder.chords import di_candidates, sum_di
+from tone_builder.target import DEFAULT_DETECTOR
 from tone_builder.strings import choose_dis
 from tone_builder.target import build_chord_target, build_target, merge_targets
 
@@ -68,10 +70,13 @@ def eq_gains(points: list[list[tuple[float, float]]], notes: list[int]) -> dict[
 
 def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict, device,
                workdir: Path, name: str, window=None, chords: dict | None = None,
-               dis_from: dict[float, tuple[str, str]] | None = None) -> dict:
+               dis_from: dict[float, tuple[str, str]] | None = None,
+               cifra_chords: list[dict] | None = None, per_chord: int = 3) -> dict:
     """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only.
     dis_from: {attack start_s: (DI, source)} a previous build chose by measurement on the same song;
-    those attacks skip the DI search (on a pedal every candidate is a real re-amp)."""
+    those attacks skip the DI search (on a pedal every candidate is a real re-amp).
+    cifra_chords: the song's chords from its tab (`cifra.load`): the target is per_chord attacks
+    of each, and each is played with the tab's shape — no voicing search."""
     errors = validate(research)
     if errors:
         raise ValueError("research is invalid:\n  " + "\n  ".join(errors))
@@ -82,8 +87,15 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     if not options.get("amp") and "amp" not in fixed:
         raise ValueError("the research names no amp with a model in the device catalog")
     stats: dict = {}
-    target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
-    if chords is not None:
+    if cifra_chords is not None:
+        ok = [c for c in cifra_chords if cifra.playable(c, by_midi)]
+        stats["cifra_unplayable"] = len(cifra_chords) - len(ok)
+        target = [e for e in cifra.target(disc, lead, cifra_chords, per_chord, window=window,
+                                          detector=(chords or {}).get("detector", DEFAULT_DETECTOR), stats=stats)
+                  if any(e["shape"] == c["shape"] for c in ok)]
+    else:
+        target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
+    if chords is not None and cifra_chords is None:
         target = merge_targets(target, build_chord_target(disc, lead, window=window,
                                                           detector=chords["detector"], stats=stats), stats)
 
@@ -102,6 +114,9 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     reused = {round(float(k), 3): v for k, v in (dis_from or {}).items()}
 
     def candidates_for(entry: dict) -> list:
+        if "shape" in entry:
+            name = "_".join(f"c{s}-{m}" for s, m in entry["shape"])
+            return [(sum_di(cifra.shape_notes(entry, by_midi), workdir / "chords" / f"{name}.wav"), "cifra")]
         if round(entry["start_s"], 3) in reused:
             di, source = reused[round(entry["start_s"], 3)]
             return [(Path(di), source)]

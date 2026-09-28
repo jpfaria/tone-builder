@@ -156,3 +156,8 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   CPU; na pedaleira cada render é um re-amp real, e um riff com dezenas de Eb5 virou o mesmo som em
   loop por meia hora ("vc ta enviando o mesmo som sempre"). Agora cada DI passa pela cadeia uma vez
   e é medido contra todos os ataques que o oferecem.
+- **Cifra antes de medir (28/09/2026, *Welcome to Paradise*):** o João: "medir acorde por acorde… vc tem
+  que baixar a cifra da música, encontrar os acordes; se não achar, pedir alguns acordes para mim. Se não
+  fica impossível". Do Cifra Club saíram 7 power chords; o alvo caiu de 52 ataques × 441 voicings para
+  8 ataques com a digitação da tab. O Cifra Club só entrega a tab com JS (curl volta 424 bytes): ler no
+  browser (`self.__next_f` traz o texto da tab).
