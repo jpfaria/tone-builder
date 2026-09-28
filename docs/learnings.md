@@ -172,3 +172,8 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   então também conta. Para medir o nível de cada cena: ficar na cena 1 e ligar nela, uma por vez, a
   variação de cada cena (`powers 1 …`); só no fim gravar os `powers` de todas. A `ampero2` agora recusa
   edição fora da cena 1 (hotone-ampero-2 2519fa1). O app editor Ampero II aberto também disputa o MIDI.
+- **"Pronto" com 6,5 dB e o som nada a ver (28/09/2026, *Welcome to Paradise*, Ampero):** o riff da cifra
+  pela A26-4 contra a guitarra separada, mesmo RMS, por oitava: faltavam ~9 dB em 1–4 kHz (Ampero pico em
+  250 Hz; disco pico em 2 kHz) e o crest era 7,4 dB contra 10,2 (ganho demais — só a captura `gain_max`
+  do NAM Dookie tinha subido). O desvio por harmônico em 8 ataques não viu; o EQ foi rejeitado pela
+  retenção. Agora a skill exige a checagem do riff antes de entregar. O João: "pq vc não fez isso desde o início?"

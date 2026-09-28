@@ -68,7 +68,12 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
    deviation, `unsourced_best`, the margin and every class reason.
 4. Write to the device as a **new** preset/slot, read it back from the device/disk, then
    `$TB verify --device … --build-dir … --saved <preset yaml | patch | slot>` — must print `"match": true`.
-5. Candidates to compare by ear: Ampero → one scene per candidate in the same patch (footswitches
+5. **Riff check before delivering**: build the cifra riff from the library notes at the song's tempo,
+   re-amp it through the SAVED preset, and compare octave-band levels (63 Hz–8 kHz, both at the same
+   RMS) with the same stretch of the separated guitar. Any band 250 Hz–4 kHz more than 3 dB off →
+   not ready, whatever `report.md` says: relay the table and rebuild (other captures/gains, EQ).
+   A NAM with several gain captures → upload and compete all of them, not only the OpenRig winner.
+6. Candidates to compare by ear: Ampero → one scene per candidate in the same patch (footswitches
    `1b…1f`); MK-300 has no scenes → one preset each. Level-match by measurement (rms of a re-amped
    chord, target within ±0.5 dB) with the amp's `Output` knob (NAM: `Output` in dB), never by ear.
    Scene 1 stays the verified build; run `verify` again after saving the scenes.
