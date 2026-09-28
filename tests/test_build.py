@@ -238,3 +238,16 @@ def test_amp_kept_on_the_device_builds_without_an_amp_candidate(tmp_path):
     amp = out["report"]["classes"]["amp"]
     assert amp["status"] == "fixed_on_device"
     assert out["report"]["classes"]["single_drive"]["status"] == "measured"
+
+
+def test_dis_from_another_build_skip_the_di_search(tmp_path):
+    # the Ampero re-amps each candidate for real: 441 voicings on Welcome to Paradise.
+    # The DI a previous build chose by measurement is reused, one per attack.
+    disc, by_midi = _inputs(tmp_path)
+    for m in MIDIS:
+        by_midi[m].append(write(tmp_path / "lib" / f"c2-{m}-X.wav", note(m, start_s=0.02)))
+    dev = FakeDevice({"amp": [_opt("amp", "amp", "Amp", [0, 2, -2, 2, -2, 2, -2, 2])]})
+    first = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w1", "s")
+    chosen = {n["start_s"]: (n["di"].replace("/c1-", "/c2-"), "library-note") for n in first["report"]["notes"]}
+    out = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w2", "s", dis_from=chosen)
+    assert [n["di"] for n in out["report"]["notes"]] == [chosen[n["start_s"]][0] for n in out["report"]["notes"]]

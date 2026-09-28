@@ -44,6 +44,9 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
 8. **Margem**: zero amostras saturadas com o DI em +12 e +18 dB — `tone_builder/margin.py`.
 9. **Relatório**: "pronto" só com número ou motivo em toda classe e margem aprovada; senão
    "parcial" — `tone_builder/report.py`.
+   - **Pedaleira reaproveita o DI**: `--dis-from <report.json>` de um build do OpenRig da mesma música e
+     guitarra usa o DI que ele escolheu por medição para cada ataque. Na pedaleira cada candidato é um
+     re-amp real (441 voicings em *Welcome to Paradise*); cortar em N voicings perde metade dos vencedores.
 
 10. **Conferência no aparelho** — `tone_builder/verify.py`. O preset salvo é renderizado 3 vezes;
     tolerância = 3σ da repetição (mínimo 0,1 dB). A MK-300 não repete a mesma nota igual: 0,2 dB

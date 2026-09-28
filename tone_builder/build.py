@@ -67,8 +67,11 @@ def eq_gains(points: list[list[tuple[float, float]]], notes: list[int]) -> dict[
 
 
 def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict, device,
-               workdir: Path, name: str, window=None, chords: dict | None = None) -> dict:
-    """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only."""
+               workdir: Path, name: str, window=None, chords: dict | None = None,
+               dis_from: dict[float, tuple[str, str]] | None = None) -> dict:
+    """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only.
+    dis_from: {attack start_s: (DI, source)} a previous build chose by measurement on the same song;
+    those attacks skip the DI search (on a pedal every candidate is a real re-amp)."""
     errors = validate(research)
     if errors:
         raise ValueError("research is invalid:\n  " + "\n  ".join(errors))
@@ -96,7 +99,12 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     if options.get("cab"):
         state["cab"] = options["cab"][0].blocks
 
+    reused = {round(float(k), 3): v for k, v in (dis_from or {}).items()}
+
     def candidates_for(entry: dict) -> list:
+        if round(entry["start_s"], 3) in reused:
+            di, source = reused[round(entry["start_s"], 3)]
+            return [(Path(di), source)]
         if entry["kind"] == "note":
             return [(p, "library-note") for p in by_midi.get(entry["midi"], [])]
         cands = di_candidates(entry["midis"], by_midi, chords["recorded"], workdir / "chords")

@@ -31,6 +31,10 @@ def parse_time(s: str) -> float:
     return float(s)
 
 
+def _dis_from(report: str) -> dict[float, tuple[str, str]]:
+    return {n["start_s"]: (n["di"], n["source"]) for n in json.loads(Path(report).read_text())["notes"]}
+
+
 def _window(a):
     lo = parse_time(a.t_from) if a.t_from else None
     hi = parse_time(a.t_to) if a.t_to else None
@@ -184,7 +188,8 @@ def _build(a) -> int:
                          device, out / "work", a.name, window=_window(a),
                          chords=None if a.no_chords else {
                              "detector": a.chord_detector,
-                             "recorded": recorded_by_midis(_root(a), a.guitar, a.position)})
+                             "recorded": recorded_by_midis(_root(a), a.guitar, a.position)},
+                         dis_from=_dis_from(a.dis_from) if a.dis_from else None)
     except Unresolved as e:
         print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
         return 3
@@ -376,6 +381,8 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
     bp.add_argument("--chord-detector", default=DEFAULT_DETECTOR, choices=("salience", "basic-pitch"))
     bp.add_argument("--no-chords", action="store_true", help="target single notes only")
+    bp.add_argument("--dis-from", help="report.json of a build of the same song and guitar: reuse the DI it "
+                                       "chose for each attack instead of searching (a pedal re-amps every candidate)")
     np_ = sub.add_parser("linearity", help="rank a unit's captures by how clean they are (no recording needed)")
     np_.add_argument("--device", required=True)
     np_.add_argument("--class", dest="klass", default="amp")
