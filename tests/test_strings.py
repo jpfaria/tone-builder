@@ -49,3 +49,12 @@ def test_a_di_goes_through_the_chain_once_however_many_attacks_use_it(tmp_path):
     assert len(out) == 3
     assert len(calls) == 2
     assert all(o["di"].name == "c2-64-E4.wav" for o in out)
+
+
+def test_the_log_says_how_many_renders_and_how_many_are_left(tmp_path, capsys):
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    choose_strings(build_target(x, x, {64}) * 3, by, copy_render, tmp_path / "w")
+    lines = [l for l in capsys.readouterr().err.splitlines() if l.startswith("[DI]")]
+    assert [l.split()[1] for l in lines] == ["1/2", "2/2"]
+    assert all("faltam ~" in l for l in lines)

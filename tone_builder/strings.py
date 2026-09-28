@@ -12,6 +12,7 @@ from pathlib import Path
 
 from tone_builder import library
 from tone_builder.compare import note_deviation
+from tone_builder.progress import Progress
 from tone_builder.render import Renderer, render_note
 
 
@@ -30,12 +31,15 @@ def choose_dis(target: list[dict], candidates_for, render: Renderer, workdir: Pa
     render is a real re-amp, and a riff repeats the same chord dozens of times."""
     out = []
     renders: dict[str, object] = {}
+    offered = [candidates_for(entry) for entry in target]
+    progress = Progress("DI", len({str(di) for c in offered for di, _ in c}))
     for i, entry in enumerate(target):
         alts: dict[str, float | None] = {}
         sources: dict[str, str] = {}
-        for di, source in candidates_for(entry):
+        for di, source in offered[i]:
             if str(di) not in renders:
                 renders[str(di)] = render_note(render, di, workdir, f"di-{i:02d}-{Path(di).stem}")
+                progress.step(Path(di).stem)
             x = renders[str(di)]
             d = note_deviation(entry, x)
             alts[str(di)] = None if d is None else d["rms_db"]
