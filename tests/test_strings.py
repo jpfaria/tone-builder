@@ -58,3 +58,19 @@ def test_the_log_says_how_many_renders_and_how_many_are_left(tmp_path, capsys):
     lines = [l for l in capsys.readouterr().err.splitlines() if l.startswith("[DI]")]
     assert [l.split()[1] for l in lines] == ["1/2", "2/2"]
     assert all("faltam ~" in l for l in lines)
+
+
+def test_measure_renders_a_shared_di_once(tmp_path):
+    from tone_builder.render import measure
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    t = build_target(x, x, {64})[0]
+    calls = []
+
+    def counting_render(src, dst):
+        calls.append(src)
+        copy_render(src, dst)
+
+    di = by[64][1]
+    res = measure(counting_render, [{"note": t, "di": di}] * 3, tmp_path / "m")
+    assert len(calls) == 1 and len(res["per_note"]) == 3
