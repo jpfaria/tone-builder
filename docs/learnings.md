@@ -183,3 +183,16 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   *mais escuro* que o ev_mix (−5,7 dB em 4 kHz). A Ampero recusa IR curto (734 amostras: ack com status 00,
   nada no inventário): completar com silêncio até 200 ms. `powers` de uma cena às vezes não pega — conferir
   com `show` antes de dar por salvo.
+
+## 2026-09-29 — As capturas do Marshall 1959BJA são só cabeçote: sem gabinete soam limpas e ásperas
+
+- **Gotcha / invariant:** `nam_marshall_1959bja_a2` e `nam_marshall_1959bja_super_bowl_a2` não têm gabinete
+  dentro. Medido em 6 acordes do build de *Welcome to Paradise*: sem cab, a faixa 6–12 kHz fica só 16–20 dB
+  abaixo de 0,5–2 kHz; com `ir_marshall_4x12_v30` cai para 29–33 dB. É a assinatura de um cabeçote pelo
+  load box, não de um rig completo.
+- **Why it matters:** usada sozinha numa chain, a captura soa "clean demais" e fina — foi a queixa do João
+  em 29/09, resolvida pondo um cab. Na mesma medição o knob de gain dessa captura mexeu pouco na saturação
+  (fator de crista 10,1 dB no gain 2, 9,9 dB no gain 10; o `input_db` de +6/+12 dB também), e todas as
+  variantes ficaram 5–6 dB mais escuras que o disco acima de 1,5 kHz.
+- **Applies to:** toda chain ou build com essas duas capturas; o manifest não diz "amp only", então
+  conferir a resposta acima de 6 kHz antes de assumir que uma captura NAM já traz gabinete.
