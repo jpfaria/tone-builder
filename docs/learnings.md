@@ -196,3 +196,17 @@ o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O refo
   variantes ficaram 5–6 dB mais escuras que o disco acima de 1,5 kHz.
 - **Applies to:** toda chain ou build com essas duas capturas; o manifest não diz "amp only", então
   conferir a resposta acima de 6 kHz antes de assumir que uma captura NAM já traz gabinete.
+
+## 2026-09-29 — Chiado "abelhudo" mora em 6–9 kHz, e a banda do x42 fil4 é bem mais larga do que o número diz
+
+- **Gotcha / invariant:** chiado inarmônico não aparece na comparação por harmônicos (`note_deviation`).
+  Para achar, use o espectro médio em 1/3 de oitava do riff renderizado contra o stem do disco. Em
+  *Welcome to Paradise*, o shelf agudo +8 dB em 4,5 kHz somado ao pico do IR Dookie em ~8 kHz deixou
+  +18 dB em 8 kHz. O desvio harmônico nem se mexeu.
+- **fil4:** `q1..q4` é "Bandwidth", e é bem mais largo do que o valor sugere. Medido com ruído branco no
+  openrig-render: com bw 0,4 centrado em 8 kHz, 4 kHz ainda cai 3,8 dB; com bw 1, cai 8 dB. Para um corte
+  cirúrgico, use 0,15–0,25.
+- **openrig-render:** as portas bool do fil4 (`HighPass`, `LowPass`, `sec1..4`) não fazem efeito, então
+  um render com HP/LP ligado sai igual ao desligado. Não use essas portas para cortar em build offline;
+  corte com uma banda paramétrica.
+- **Applies to:** todo ajuste de EQ com x42 fil4 e toda queixa de "zumbido/abelha/chiado" no timbre.
