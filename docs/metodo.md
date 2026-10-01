@@ -159,3 +159,22 @@ Uma classe sem candidato precisa de motivo (normalmente o `not_found` da pesquis
 | Confiar num número de validação medido com uma guitarra só | o 1,84 dB virou 1,5–3,7 dB com 4 guitarras |
 | Ler áudio sem reamostrar para 48 kHz | Demucs escreve 44,1 kHz; tudo desloca +1,5 semitom |
 | Mudar amp, compressor e EQ no mesmo passo num ajuste de ouvido | 17/09: estado "próximo" virou "completamente diferente" sem dar para saber o que piorou |
+| Rodar o laço de `eq_match` em lote, várias músicas de uma vez | destruiu a biblioteca inteira: 38 presets de uma vez, sem ninguém ouvir |
+| Perseguir o topo morto de um stem separado com corte de presença/agudo | o número sobe e o som morre: −21 a −24 dB em 5k/10k e `output_db` em +12 |
+
+### O laço de `eq_match` em lote matou 38 presets (2026)
+
+`rebuild_preset.py` rodado em lote contra stems separados zerou a biblioteca. Todo *reference* era
+um stem com a oitava de cima morta (acima de ~5 kHz). Para "casar" esse topo morto, o `eq_match`
+empilhou cortes enormes na presença e no agudo do render — o desvio medido melhorava enquanto o
+timbre morria. É exatamente a armadilha da referência degradada, e o laço em lote passou por cima
+dela. A contaminação ainda sincronizou para o `project.yaml`; só os áudios de referência
+sobreviveram.
+
+- Timbrar é **uma música por vez**, e quem aprova antes de salvar é o **ouvido do João** — não o número.
+- Stem degradado (topo morto, *self_floor* baixo): **não** rodar o escurecimento agressivo do
+  `eq_match`. Montar o equipamento pesquisado (o amp é o timbre, mais a cadeia de drive) com EQ
+  neutra ou musical (plana ± um ar leve) e entregar para ele ouvir.
+- Nunca inventar equipamento ou ajuste: equipamento vem da pesquisa citada; EQ que não dá para
+  validar honestamente não é entregue.
+- Proteger os áudios de referência acima de tudo — foi o único material que sobrou.
