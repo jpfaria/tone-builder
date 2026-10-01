@@ -106,6 +106,19 @@ def test_unit_without_catalog_model_becomes_the_class_reason(tmp_path):
     assert out["report"]["absent_from_catalog"] == {"cab": ["Dumble 4x12"]}
 
 
+@pytest.mark.parametrize("klass,unit", [("time_fx", "Uni-Vibe"), ("compressor", "Urei 1176")])
+def test_absent_unit_is_the_reason_for_every_class_not_only_amp_and_cab(tmp_path, klass, unit):
+    # Alive, 19/09/2026: a Uni-Vibe with no OpenRig model left time_fx with no number and no reason -> "parcial"
+    disc, by_midi = _inputs(tmp_path)
+    r = {**RESEARCH, "blocks": RESEARCH["blocks"] + [
+        {"class": klass, "unit": unit, "era": "record", "sources": ["https://d"], "absent_from_catalog": True}],
+         "not_found": [n for n in RESEARCH["not_found"] if n["class"] != klass]}
+    dev = FakeDevice({"amp": [_opt("amp", "amp", "Amp", [0, 4, -4, 4, -4, 4, -4, 4])]})
+    out = build_tone(disc, disc, by_midi, r, dev, tmp_path / "w", "s")
+    assert unit in out["report"]["classes"][klass]["reason"]
+    assert klass not in out["report"]["missing"]
+
+
 import re
 
 from tone_builder import library as lib_mod
@@ -214,3 +227,27 @@ def test_stacked_drives_the_device_cannot_hold_gets_a_reason(tmp_path):
     out = build_tone(disc, disc, by_midi, research, dev, tmp_path / "w", "song")
     assert "one drive block" in out["report"]["classes"]["stacked_drives"]["reason"]
     assert "stacked_drives" not in out["report"]["missing"]
+
+
+def test_amp_kept_on_the_device_builds_without_an_amp_candidate(tmp_path):
+    """MK-300 with a NAM chosen by hand: the amp never enters the battery, the rest still does."""
+    disc, by_midi = _inputs(tmp_path)
+    dev = FakeDevice({"single_drive": [_opt("ts", "single_drive", "TS", [0, 2, -2, 2, -2, 2, -2, 2])]})
+    dev.fixed_classes = {"amp"}
+    out = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w", "n")
+    amp = out["report"]["classes"]["amp"]
+    assert amp["status"] == "fixed_on_device"
+    assert out["report"]["classes"]["single_drive"]["status"] == "measured"
+
+
+def test_dis_from_another_build_skip_the_di_search(tmp_path):
+    # the Ampero re-amps each candidate for real: 441 voicings on Welcome to Paradise.
+    # The DI a previous build chose by measurement is reused, one per attack.
+    disc, by_midi = _inputs(tmp_path)
+    for m in MIDIS:
+        by_midi[m].append(write(tmp_path / "lib" / f"c2-{m}-X.wav", note(m, start_s=0.02)))
+    dev = FakeDevice({"amp": [_opt("amp", "amp", "Amp", [0, 2, -2, 2, -2, 2, -2, 2])]})
+    first = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w1", "s")
+    chosen = {n["start_s"]: (n["di"].replace("/c1-", "/c2-"), "library-note") for n in first["report"]["notes"]}
+    out = build_tone(disc, disc, by_midi, RESEARCH, dev, tmp_path / "w2", "s", dis_from=chosen)
+    assert [n["di"] for n in out["report"]["notes"]] == [chosen[n["start_s"]][0] for n in out["report"]["notes"]]

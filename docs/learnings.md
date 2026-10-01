@@ -143,3 +143,108 @@ por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 1
   dois catálogos antes de enfileirar. Uma unidade pesquisada que não existe no catálogo também deixava o
   relatório em `parcial` sem motivo nas classes `compressor` e `time_fx` (corrigido em 19/09).
 - **Applies to:** todo build que reaproveita pesquisa feita para outro aparelho.
+
+## Primeiro timbre medido na MK-300 (Gravity, 19/09/2026)
+
+`build --device mvave` de ponta a ponta, com `verify` na preset gravada: 9,21 dB esperados contra
+9,26 dB medidos (três repetições, desvio-padrão 0,014 dB). Cadeia final: só o `61DUMBLE_FG`, com
+todos os knobs em 50 e o VOL em 70. O drive (`1BLUES_OD`) e o EQ ajustado foram recusados pela
+retenção. No OpenRig o mesmo método e a mesma pesquisa deram 7,76 dB.
+
+Três coisas que o primeiro build errou, e que a correção mede:
+
+- **Knob não escrito ficava com o valor da preset carregada.** O `apply_commands` só mandava os
+  knobs escolhidos; o resto vinha do buffer (a rodada de 19/09 mediu o Dumble com `Gain=80
+  Level=60 Middle=60` herdados da "DIG Alive Base"). Agora todo knob do bloco é escrito: o valor
+  escolhido, o default do catálogo, ou o meio da faixa quando o pedal não informa default (`?`).
+  Sem isso o número não é reprodutível nem transferível para outra preset.
+- **A saída estourava.** Com o nível herdado, o retorno USB passava de 0 dBFS já com o DI sem
+  ganho (26 amostras saturadas em +0 dB, 89 190 em +18 dB). O build agora baixa o último bloco da
+  cadeia (`output_levels`, o VOL na MK-300) até a margem de +18 dB passar — nível não é timbre. Com
+  VOL 70: pico −18,1 / −6,3 / −1,2 dBFS em +0/+12/+18, zero amostras saturadas.
+- **Classe sem número e sem motivo.** Os drives empilhados falhavam em todos os pares ("a MK-300
+  tem um bloco DS") e a classe saía vazia, o que derruba o relatório para `parcial` sem dizer
+  por quê. Quando nenhum par renderiza, o erro do aparelho vira o motivo da classe.
+
+Nome de unidade é por aparelho: `Dumble ODS John Mayer` e `Marshall BluesBreaker` resolvem no
+OpenRig e não na MK-300 (0,25 e 0,38, abaixo do corte de 0,5). A pesquisa foi copiada para
+`research-mvave.yaml` com `Dumble` e `Bluesbreaker` — mesmas fontes, nomes que o catálogo dela
+reconhece. O `Bluesbreaker` só passou a resolver depois de corrigir a `mvave`: um apelido escrito
+com `_` (`blues_od`) nunca batia com o nome do modelo (`1BLUES_OD`).
+
+O nome da preset na MK-300 tem 20 caracteres: `DIG - John Mayer - Gravity (solo)` não cabe, foi
+gravada como `DIG Gravity Solo` na slot 104.
+
+## Margem: DI quente não pode ser reforçado além do fundo de escala (20/09/2026)
+
+O teste de margem reforçava o DI em +12/+18 dB com `np.clip`. Com humbucker (DI a −6,6 dBFS) o DI já saía
+ceifado ANTES do aparelho; os topos planos voltavam como "saturação" em qualquer nível de saída, o build baixava
+o VOL da MK-300 até 50 (−61 dBFS de retorno) e morria com "no signal". O reforço agora para em −0,5 dBFS.
+
+- **MK-300 V73 e NAM (19-20/09/2026, *Sweet Child O' Mine*):** o NAM escolhido na pedaleira **não**
+  aparece na imagem do preset (448 bytes): entre um preset com NAM e um vazio só mudam nome, `AMP
+  enabled` e um knob. Carregar o preset por MIDI (`mvave load`) perde o NAM — medido: re-amp a
+  13,9 dB do NAM do OpenRig carregando por MIDI, contra 5,1 dB com o preset escolhido no pé.
+  Escrever `model AMP ...` também o derruba. Por isso `--keep-block AMP`: o bloco não é escrito nem
+  medido, e a classe sai no relatório como `fixed_on_device`.
+  Os índices de AMP acima do catálogo (120+) não são slots de NAM: entregam o DI seco atenuado
+  (−35 dBFS, 6,3 dB do DI puro, contra −6,2 dBFS de um amp de fábrica).
+- **Escolha do DI repetia re-amp (28/09/2026, *Welcome to Paradise*, Ampero II):** `choose_dis`
+  renderizava cada digitação candidata de novo para cada ataque do alvo. No OpenRig isso só custa
+  CPU; na pedaleira cada render é um re-amp real, e um riff com dezenas de Eb5 virou o mesmo som em
+  loop por meia hora ("vc ta enviando o mesmo som sempre"). Agora cada DI passa pela cadeia uma vez
+  e é medido contra todos os ataques que o oferecem.
+- **Cifra antes de medir (28/09/2026, *Welcome to Paradise*):** o João: "medir acorde por acorde… vc tem
+  que baixar a cifra da música, encontrar os acordes; se não achar, pedir alguns acordes para mim. Se não
+  fica impossível". Do Cifra Club saíram 7 power chords; o alvo caiu de 52 ataques × 441 voicings para
+  8 ataques com a digitação da tab. O Cifra Club só entrega a tab com JS (curl volta 424 bytes): ler no
+  browser (`self.__next_f` traz o texto da tab).
+- **Pedaleira: modelo fixado na pesquisa, nada de chute por nome (28/09/2026, *Welcome to Paradise*):** o
+  `resolve` da Ampero aceitou Checkboard, Greenback e EVM para "Marshall 4x12 V30" só por serem "Marshall 4x12"
+  (o João: "não fica testando com coisa nada a ver, não podemos ficar chutando"). Quando a pedaleira não tem o
+  modelo, sobe o IR/NAM da unidade pesquisada e o bloco da pesquisa ganha `ampero2: ["CAB:User IR 3"]` —
+  esses são os únicos candidatos. E Plexi não tem knob "Gain": o ganho é o `Volume` (há `Output` depois).
+- **Ampero: editar só na cena 1 (28/09/2026, *Welcome to Paradise*):** `param`/`model`/`input-source` com a
+  pedaleira em outra cena derrubam o firmware v1.7.0 ("Record the error and restart: SceneNum == SCENE_1",
+  PresetInterface.c:2279) — aconteceu duas vezes, e o João teve de reiniciar. O `reamp` escreve o input source,
+  então também conta. Para medir o nível de cada cena: ficar na cena 1 e ligar nela, uma por vez, a
+  variação de cada cena (`powers 1 …`); só no fim gravar os `powers` de todas. A `ampero2` agora recusa
+  edição fora da cena 1 (hotone-ampero-2 2519fa1). O app editor Ampero II aberto também disputa o MIDI.
+- **"Pronto" com 6,5 dB e o som nada a ver (28/09/2026, *Welcome to Paradise*, Ampero):** o riff da cifra
+  pela A26-4 contra a guitarra separada, mesmo RMS, por oitava: faltavam ~9 dB em 1–4 kHz (Ampero pico em
+  250 Hz; disco pico em 2 kHz) e o crest era 7,4 dB contra 10,2 (ganho demais — só a captura `gain_max`
+  do NAM Dookie tinha subido). O desvio por harmônico em 8 ataques não viu; o EQ foi rejeitado pela
+  retenção. Agora a skill exige a checagem do riff antes de entregar. O João: "pq vc não fez isso desde o início?"
+- **Riff check resolveu o que o build não viu (28/09/2026, *Welcome to Paradise*, Ampero A28-1):** EQ ajustado
+  pelo espectro do riff inteiro (8 bandas, 3 iterações de −0,8 × diferença) levou a pior banda 250 Hz–4 kHz de
+  4,6 → 1,9 dB (SLP+ Volume 80 + IR V30 ev_mix) e 4,7 → 2,5 dB (NAM Dookie max). O IR 1960BV V30 SM57 ficou
+  *mais escuro* que o ev_mix (−5,7 dB em 4 kHz). A Ampero recusa IR curto (734 amostras: ack com status 00,
+  nada no inventário): completar com silêncio até 200 ms. `powers` de uma cena às vezes não pega — conferir
+  com `show` antes de dar por salvo.
+
+## 2026-09-29 — As capturas do Marshall 1959BJA são só cabeçote: sem gabinete soam limpas e ásperas
+
+- **Gotcha / invariant:** `nam_marshall_1959bja_a2` e `nam_marshall_1959bja_super_bowl_a2` não têm gabinete
+  dentro. Medido em 6 acordes do build de *Welcome to Paradise*: sem cab, a faixa 6–12 kHz fica só 16–20 dB
+  abaixo de 0,5–2 kHz; com `ir_marshall_4x12_v30` cai para 29–33 dB. É a assinatura de um cabeçote pelo
+  load box, não de um rig completo.
+- **Why it matters:** usada sozinha numa chain, a captura soa "clean demais" e fina — foi a queixa do João
+  em 29/09, resolvida pondo um cab. Na mesma medição o knob de gain dessa captura mexeu pouco na saturação
+  (fator de crista 10,1 dB no gain 2, 9,9 dB no gain 10; o `input_db` de +6/+12 dB também), e todas as
+  variantes ficaram 5–6 dB mais escuras que o disco acima de 1,5 kHz.
+- **Applies to:** toda chain ou build com essas duas capturas; o manifest não diz "amp only", então
+  conferir a resposta acima de 6 kHz antes de assumir que uma captura NAM já traz gabinete.
+
+## 2026-09-29 — Chiado "abelhudo" mora em 6–9 kHz, e a banda do x42 fil4 é bem mais larga do que o número diz
+
+- **Gotcha / invariant:** chiado inarmônico não aparece na comparação por harmônicos (`note_deviation`).
+  Para achar, use o espectro médio em 1/3 de oitava do riff renderizado contra o stem do disco. Em
+  *Welcome to Paradise*, o shelf agudo +8 dB em 4,5 kHz somado ao pico do IR Dookie em ~8 kHz deixou
+  +18 dB em 8 kHz. O desvio harmônico nem se mexeu.
+- **fil4:** `q1..q4` é "Bandwidth", e é bem mais largo do que o valor sugere. Medido com ruído branco no
+  openrig-render: com bw 0,4 centrado em 8 kHz, 4 kHz ainda cai 3,8 dB; com bw 1, cai 8 dB. Para um corte
+  cirúrgico, use 0,15–0,25.
+- **openrig-render:** as portas bool do fil4 (`HighPass`, `LowPass`, `sec1..4`) não fazem efeito, então
+  um render com HP/LP ligado sai igual ao desligado. Não use essas portas para cortar em build offline;
+  corte com uma banda paramétrica.
+- **Applies to:** todo ajuste de EQ com x42 fil4 e toda queixa de "zumbido/abelha/chiado" no timbre.

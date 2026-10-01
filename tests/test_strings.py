@@ -31,3 +31,46 @@ def test_note_without_library_pair_is_left_out(tmp_path):
     by = library_by_midi(_library(tmp_path), "g", "pos5")
     x = note(67)
     assert choose_strings(build_target(x, x, {67}), by, copy_render, tmp_path / "w") == []
+
+
+def test_a_di_goes_through_the_chain_once_however_many_attacks_use_it(tmp_path):
+    # on a pedal each render is a real re-amp: Welcome to Paradise has dozens of Eb5 attacks,
+    # and re-playing every voicing for each one sounded to the user like a stuck loop
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    target = build_target(x, x, {64})
+    calls = []
+
+    def counting_render(src, dst):
+        calls.append(src)
+        copy_render(src, dst)
+
+    out = choose_strings(target * 3, by, counting_render, tmp_path / "w")
+    assert len(out) == 3
+    assert len(calls) == 2
+    assert all(o["di"].name == "c2-64-E4.wav" for o in out)
+
+
+def test_the_log_says_how_many_renders_and_how_many_are_left(tmp_path, capsys):
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    choose_strings(build_target(x, x, {64}) * 3, by, copy_render, tmp_path / "w")
+    lines = [l for l in capsys.readouterr().err.splitlines() if l.startswith("[DI]")]
+    assert [l.split()[1] for l in lines] == ["1/2", "2/2"]
+    assert all("faltam ~" in l for l in lines)
+
+
+def test_measure_renders_a_shared_di_once(tmp_path):
+    from tone_builder.render import measure
+    by = library_by_midi(_library(tmp_path), "g", "pos5")
+    x = note(64)
+    t = build_target(x, x, {64})[0]
+    calls = []
+
+    def counting_render(src, dst):
+        calls.append(src)
+        copy_render(src, dst)
+
+    di = by[64][1]
+    res = measure(counting_render, [{"note": t, "di": di}] * 3, tmp_path / "m")
+    assert len(calls) == 1 and len(res["per_note"]) == 3

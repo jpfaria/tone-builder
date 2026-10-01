@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 import soundfile as sf
 import yaml
 
-from tone_builder import library, recorder, song_audio
+from tone_builder import cifra, library, recorder, song_audio
 from tone_builder.audio import load_mono
 from tone_builder.strings import library_by_midi
 from tone_builder.chords import recorded_by_midis
@@ -29,6 +30,10 @@ def parse_time(s: str) -> float:
         m, sec = s.split(":", 1)
         return int(m) * 60 + float(sec)
     return float(s)
+
+
+def _dis_from(report: str) -> dict[float, tuple[str, str]]:
+    return {n["start_s"]: (n["di"], n["source"]) for n in json.loads(Path(report).read_text())["notes"]}
 
 
 def _window(a):
@@ -144,6 +149,25 @@ def _target(a) -> int:
     return 0 if t else 1
 
 
+def _released(a, fn, runner=None) -> int:
+    """The Ampero's edit buffer is borrowed on USB OUT 3/4 for re-amp: it goes back to the guitar
+    input when the command ends — success, error, Ctrl-C or kill (28/09/2026: build and verify left
+    the pedal silent for normal playing)."""
+    if getattr(a, "device", None) != "ampero2":
+        return fn(a)
+    import signal
+    from tone_builder.devices.pedal import Runner
+    old = signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    try:
+        return fn(a)
+    finally:
+        signal.signal(signal.SIGTERM, old)
+        code, text = (runner or Runner("ampero2"))(["input-source", "input"])
+        if code != 0:
+            print(f"AMPERO SILENT for normal playing (input source still usb34). Fix: ampero2 input-source input\n"
+                  f"{text.strip()[-300:]}", file=sys.stderr)
+
+
 def _build(a) -> int:
     import json
     from tone_builder.build import Unresolved, build_tone
@@ -164,10 +188,10 @@ def _build(a) -> int:
             print("build: --work-patch is required for ampero2 (an empty patch to build and re-amp in)",
                   file=sys.stderr)
             return 2
-        device = AmperoDevice(out / "work", a.work_patch)
+        device = AmperoDevice(out / "work", a.work_patch, keep_blocks=tuple(a.keep_block or ()))
     elif a.device == "mvave":
         from tone_builder.devices.pedal import MvaveDevice
-        device = MvaveDevice(out / "work")
+        device = MvaveDevice(out / "work", keep_blocks=tuple(a.keep_block or ()))
     else:
         print(f"build: unknown device {a.device!r} (openrig, ampero2, mvave)", file=sys.stderr)
         return 2
@@ -184,7 +208,9 @@ def _build(a) -> int:
                          device, out / "work", a.name, window=_window(a),
                          chords=None if a.no_chords else {
                              "detector": a.chord_detector,
-                             "recorded": recorded_by_midis(_root(a), a.guitar, a.position)})
+                             "recorded": recorded_by_midis(_root(a), a.guitar, a.position)},
+                         dis_from=_dis_from(a.dis_from) if a.dis_from else None,
+                         cifra_chords=cifra.load(Path(a.cifra)) if a.cifra else None, per_chord=a.per_chord)
     except Unresolved as e:
         print("researched units with no model in the catalog:", *e.args[0], sep="\n  ", file=sys.stderr)
         return 3
@@ -368,11 +394,19 @@ def main(argv: list[str] | None = None) -> int:
     bp.add_argument("--out", required=True)
     bp.add_argument("--plugins-root")
     bp.add_argument("--work-patch")
+    bp.add_argument("--keep-block", action="append", metavar="BLOCK",
+                    help="a pedal block chosen by hand on the device (e.g. AMP with a NAM loaded): "
+                         "never written, never measured; its class is reported as fixed on the device")
     bp.add_argument("--root")
     bp.add_argument("--from", dest="t_from", help="target attacks from M:SS")
     bp.add_argument("--to", dest="t_to", help="target attacks before M:SS")
     bp.add_argument("--chord-detector", default=DEFAULT_DETECTOR, choices=("salience", "basic-pitch"))
     bp.add_argument("--no-chords", action="store_true", help="target single notes only")
+    bp.add_argument("--cifra", help="cifra.yaml: the song's chords and tab shapes (see tone_builder/cifra.py); "
+                                    "the target is --per-chord attacks of each, played with the tab's shape")
+    bp.add_argument("--per-chord", type=int, default=3, help="attacks measured per cifra chord (default 3)")
+    bp.add_argument("--dis-from", help="report.json of a build of the same song and guitar: reuse the DI it "
+                                       "chose for each attack instead of searching (a pedal re-amps every candidate)")
     np_ = sub.add_parser("linearity", help="rank a unit's captures by how clean they are (no recording needed)")
     np_.add_argument("--device", required=True)
     np_.add_argument("--class", dest="klass", default="amp")
@@ -389,11 +423,11 @@ def main(argv: list[str] | None = None) -> int:
     wp.add_argument("--saved", required=True, help="openrig: saved preset YAML; ampero2: patch (A30-3); mvave: preset number")
     a = p.parse_args(argv)
     if a.group == "verify":
-        return _verify(a)
+        return _released(a, _verify)
     if a.group == "linearity":
         return _linearity(a)
     if a.group == "build":
-        return _build(a)
+        return _released(a, _build)
     if a.group == "target":
         return _target(a)
     if a.group == "validate":

@@ -134,3 +134,64 @@ def test_mvave_sets_every_knob_and_the_output_level(tmp_path):
     assert ["param", "VOL", "VOL", "100"] in cmds
     low = dev.apply_commands(dev.with_level([{"category": "AMP", "model": "61DUMBLE_FG", "knobs": {}}], 25))
     assert ["param", "VOL", "VOL", "25"] in low and ["param", "VOL", "VOL", "100"] not in low
+
+
+def test_runner_retries_a_device_call_that_crashes_once(tmp_path):
+    # MK-300, 20/09/2026: one `mvave param AMP Pres 50` in hundreds died with a traceback and ended a build
+    from tone_builder.devices.pedal import Runner
+    flag = tmp_path / "crashed-once"
+    exe = tmp_path / "dev"
+    exe.write_text(f"#!/bin/sh\nif [ ! -e {flag} ]; then touch {flag}; echo Traceback >&2; exit 1; fi\necho ok $@\n")
+    exe.chmod(0o755)
+    code, out = Runner(str(exe), pause_s=0)(["param", "AMP", "Pres", "50"])
+    assert code == 0 and "ok param" in out
+
+
+def test_a_failed_device_call_reports_the_end_of_its_output(tmp_path):
+    from tone_builder.devices.pedal import MvaveDevice
+    from tone_builder.render import RenderError
+    dev = MvaveDevice(tmp_path, runner=lambda args: (1, "Traceback\n" + "x" * 500 + "\nRuntimeError: the real cause"))
+    with pytest.raises(RenderError, match="the real cause"):
+        dev._ok(["show"])
+
+def test_mvave_never_touches_a_block_kept_on_the_device(tmp_path):
+    # MK-300 V73: a NAM chosen on the pedal is not in the preset image, so `load` and
+    # `model AMP ...` wipe it (19/09/2026: re-amp went from 5.1 dB to 13.9 dB off the NAM).
+    dev = MvaveDevice(tmp_path, FakeMvave(), keep_blocks=("AMP",))
+    cmds = dev.apply_commands([{"category": "CAB", "model": "10MAR1960_412", "knobs": {}}])
+    assert not any(c[1] == "AMP" for c in cmds if len(c) > 1)
+    assert ["model", "CAB", "10MAR1960_412"] in cmds
+    assert dev.fixed_classes == {"amp"}
+
+
+def test_ampero_keeps_a_block_chosen_on_the_device(tmp_path):
+    dev = AmperoDevice(tmp_path, "A60-5", FakeAmpero(), keep_blocks=("AMP",))
+    assert dev.fixed_classes == {"amp"}
+    assert not any(len(c) > 2 and c[2] == "AMP" for c in dev.apply_commands(
+        [{"category": "DRV", "model": "Blues Butter", "knobs": {"Gain": 40}}]))
+
+
+def test_research_can_fix_the_pedal_models_and_duplicates_are_measured_once(tmp_path):
+    dev = AmperoDevice(tmp_path, "A60-5", FakeAmpero())
+    research = {"blocks": [
+        {"class": "cab", "unit": "Marshall 4x12 V30", "ampero2": ["CAB:User IR 3"]},
+        {"class": "cab", "unit": "Marshall 4x12", "ampero2": ["CAB:User IR 3"]},
+    ]}
+    opts, unresolved = dev.resolve(research)
+    assert unresolved == []
+    assert sorted({o.name.split("[")[0] for o in opts["cab"]}) == ["CAB:User IR 3"]
+    assert len({o.name for o in opts["cab"]}) == len(opts["cab"])
+
+
+def test_ampero_commands_give_the_pedal_back_to_the_guitar_even_on_error(tmp_path):
+    import argparse
+    import pytest
+    from tone_builder.cli import _released
+    calls = []
+
+    def boom(a):
+        raise RuntimeError("re-amp died")
+
+    with pytest.raises(RuntimeError):
+        _released(argparse.Namespace(device="ampero2"), boom, runner=lambda args: calls.append(args) or (0, ""))
+    assert calls == [["input-source", "input"]]

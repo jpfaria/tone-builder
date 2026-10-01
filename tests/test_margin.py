@@ -24,3 +24,13 @@ def test_quiet_chain_passes(tmp_path):
     assert margin_ok(m)
     assert set(m) == {0, 12, 18}
     assert all(p.parent == tmp_path / "w" for p in (tmp_path / "w").iterdir())
+
+
+def test_a_hot_di_is_boosted_only_up_to_full_scale(tmp_path):
+    # Even Flow on the MK-300, 20/09/2026: a humbucker DI at -6.6 dBFS boosted +12/+18 dB was clipped BEFORE the
+    # device; the flat tops came back as "saturation" at every output level, down to no signal at all
+    di = write(tmp_path / "di.wav", note(62, start_s=0.02, amp=0.5))
+    passthrough = lambda s, d: sf.write(str(d), 0.3 * sf.read(str(s))[0], 48000, subtype="FLOAT")
+    m = measure_margin(passthrough, [di], tmp_path / "w")
+    assert margin_ok(m)
+    assert np.abs(sf.read(str(tmp_path / "w" / "00-di+18.wav"))[0]).max() < 1.0

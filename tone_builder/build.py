@@ -27,7 +27,9 @@ from tone_builder.battery import Candidate, run_battery
 from tone_builder.margin import margin_ok, measure_margin
 from tone_builder.render import measure
 from tone_builder.research import validate
-from tone_builder.chords import di_candidates
+from tone_builder import cifra
+from tone_builder.chords import di_candidates, sum_di
+from tone_builder.target import DEFAULT_DETECTOR
 from tone_builder.strings import choose_dis
 from tone_builder.target import build_chord_target, build_target, merge_targets
 
@@ -67,19 +69,33 @@ def eq_gains(points: list[list[tuple[float, float]]], notes: list[int]) -> dict[
 
 
 def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict, device,
-               workdir: Path, name: str, window=None, chords: dict | None = None) -> dict:
-    """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only."""
+               workdir: Path, name: str, window=None, chords: dict | None = None,
+               dis_from: dict[float, tuple[str, str]] | None = None,
+               cifra_chords: list[dict] | None = None, per_chord: int = 3) -> dict:
+    """chords: {"detector": str, "recorded": {octave-reduced midis: [DI]}}, or None for notes only.
+    dis_from: {attack start_s: (DI, source)} a previous build chose by measurement on the same song;
+    those attacks skip the DI search (on a pedal every candidate is a real re-amp).
+    cifra_chords: the song's chords from its tab (`cifra.load`): the target is per_chord attacks
+    of each, and each is played with the tab's shape — no voicing search."""
     errors = validate(research)
     if errors:
         raise ValueError("research is invalid:\n  " + "\n  ".join(errors))
     options, unresolved = device.resolve(research)
     if unresolved:
         raise Unresolved(unresolved)
-    if not options.get("amp"):
+    fixed = set(getattr(device, "fixed_classes", ()) or ())
+    if not options.get("amp") and "amp" not in fixed:
         raise ValueError("the research names no amp with a model in the device catalog")
     stats: dict = {}
-    target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
-    if chords is not None:
+    if cifra_chords is not None:
+        ok = [c for c in cifra_chords if cifra.playable(c, by_midi)]
+        stats["cifra_unplayable"] = len(cifra_chords) - len(ok)
+        target = [e for e in cifra.target(disc, lead, cifra_chords, per_chord, window=window,
+                                          detector=(chords or {}).get("detector", DEFAULT_DETECTOR), stats=stats)
+                  if any(e["shape"] == c["shape"] for c in ok)]
+    else:
+        target = build_target(disc, lead, set(by_midi), window=window, stats=stats)
+    if chords is not None and cifra_chords is None:
         target = merge_targets(target, build_chord_target(disc, lead, window=window,
                                                           detector=chords["detector"], stats=stats), stats)
 
@@ -91,11 +107,19 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
                          f"with enough harmonics ({seen()})")
 
     workdir = Path(workdir)
-    state: dict[str, list[dict]] = {"amp": options["amp"][0].blocks}
+    state: dict[str, list[dict]] = {"amp": options["amp"][0].blocks} if options.get("amp") else {}
     if options.get("cab"):
         state["cab"] = options["cab"][0].blocks
 
+    reused = {round(float(k), 3): v for k, v in (dis_from or {}).items()}
+
     def candidates_for(entry: dict) -> list:
+        if "shape" in entry:
+            name = "_".join(f"c{s}-{m}" for s, m in entry["shape"])
+            return [(sum_di(cifra.shape_notes(entry, by_midi), workdir / "chords" / f"{name}.wav"), "cifra")]
+        if round(entry["start_s"], 3) in reused:
+            di, source = reused[round(entry["start_s"], 3)]
+            return [(Path(di), source)]
         if entry["kind"] == "note":
             return [(p, "library-note") for p in by_midi.get(entry["midi"], [])]
         cands = di_candidates(entry["midis"], by_midi, chords["recorded"], workdir / "chords")
@@ -110,6 +134,12 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     classes: dict[str, dict] = {}
 
     def step(klass: str, slot: str, opts: list[Option], extra_units: set[str] = frozenset()) -> dict:
+        if klass in fixed:      # chosen by hand on the device: never written, never measured
+            units = [b["unit"] for b in (research.get("blocks") or []) if b["class"] == klass]
+            entry = {"status": "fixed_on_device", "sourced": None, "unsourced_best": None, "measured": {},
+                     "errors": [], "reason": f"chosen on the device: {', '.join(units) or klass}"}
+            classes[klass] = entry
+            return entry
         by_name = {o.name: o for o in opts}
         cands = [Candidate(o.name, klass, o.unit, device.renderer(assemble({**state, slot: o.blocks})),
                            o.gain_reduction_db) for o in opts]
@@ -167,7 +197,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
     for o in options.get("compressor", []):
         o.gain_reduction_db = device.gain_reduction(o.blocks, [a["di"] for a in assignments], workdir / "gr" / o.name)
         comps.append(o)
-    step("compressor", "compressor", comps)
+    note_absent(step("compressor", "compressor", comps), "compressor")
 
     current = measure(device.renderer(assemble(state)), assignments, workdir / "eq-base")
     gains = eq_gains(current["points"], fit)
@@ -177,6 +207,7 @@ def build_tone(disc: np.ndarray, lead: np.ndarray, by_midi: dict, research: dict
 
     tfx = options.get("time_fx", [])
     tfx_entry = step("time_fx", "time_fx", tfx)
+    note_absent(tfx_entry, "time_fx")
     if tfx:
         # a time/feel block named by the research ships even when the harmonic number cannot see it
         seen, blocks = set(), []

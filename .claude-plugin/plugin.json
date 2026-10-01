@@ -1,7 +1,7 @@
 {
   "name": "tone-builder",
   "description": "Recreates the tone of a recording by measurement (the record read at each harmonic, one note at a time, every choice under retention) and builds it on OpenRig, Hotone Ampero II and M-VAVE MK-300.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "João Paulo"
   },

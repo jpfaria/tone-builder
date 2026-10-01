@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from tone_builder import retention
+from tone_builder.progress import Progress
 from tone_builder.compressor import MIN_GAIN_REDUCTION_DB, is_tested
 from tone_builder.render import Renderer, RenderError, measure
 from tone_builder.research import CLASSES, sourced_units
@@ -69,8 +70,10 @@ def run_battery(baseline: Renderer, candidates: list[Candidate], assignments: li
                 return c.name, None, f"{c.name}: {e}"
 
         results = {}
+        progress = Progress(klass, len(pool))
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:   # renders are subprocesses: threads are enough
             for name, res, err in ex.map(one, pool):          # map keeps the candidates' order
+                progress.step(name if err else f"{name}: {res['deviation']} dB")
                 if err:
                     entry["errors"].append(err)
                 else:

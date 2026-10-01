@@ -11,6 +11,9 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
    **do disco** separado do rig **de turnê**. Não achou é resultado: vai para `not_found` com o que
    foi buscado. A pesquisa decide quais blocos existem e quais unidades entram na lista; a medição
    só escolhe entre elas.
+   Quem pesquisa é o agent `gear-researcher`, em contexto próprio; quem confere é o
+   `research-auditor`, que abre cada URL citada e reprova bloco sem frase que o sustente. A
+   conversa principal não pesquisa: recebe o veredito.
 1. **Alvo = o disco, lido em cada frequência harmônica** — `tone_builder/target.py`.
    A pista separada só localiza onde a guitarra toca e qual é a nota.
    `--from M:SS --to M:SS` limita o alvo aos ataques dentro da janela; `--role rhythm|solo`
@@ -41,6 +44,13 @@ cada tentativa descartada, está em `jpfaria/music-setup` → `docs/metodo-timbr
 8. **Margem**: zero amostras saturadas com o DI em +12 e +18 dB — `tone_builder/margin.py`.
 9. **Relatório**: "pronto" só com número ou motivo em toda classe e margem aprovada; senão
    "parcial" — `tone_builder/report.py`.
+   - **Cifra primeiro (pedal)**: medir acorde por acorde tudo o que o detector achou é inviável na
+     pedaleira (975 re-amps em *Welcome to Paradise*). Baixar a cifra da música; sem cifra, pedir
+     alguns acordes ao usuário. `cifra.yaml` (`tone_builder/cifra.py`) lista os acordes e a digitação
+     da tab; `build --cifra … --per-chord 3` mede só os 3 ataques mais fortes de cada acorde, com
+     aquela digitação. Acorde abaixo do Mi solto da biblioteca afinada em padrão fica de fora.
+   - **Pedaleira reaproveita o DI**: `--dis-from <report.json>` de um build do OpenRig da mesma música e
+     guitarra usa o DI que ele escolheu por medição para cada ataque.
 
 10. **Conferência no aparelho** — `tone_builder/verify.py`. O preset salvo é renderizado 3 vezes;
     tolerância = 3σ da repetição (mínimo 0,1 dB). A MK-300 não repete a mesma nota igual: 0,2 dB
@@ -149,3 +159,22 @@ Uma classe sem candidato precisa de motivo (normalmente o `not_found` da pesquis
 | Confiar num número de validação medido com uma guitarra só | o 1,84 dB virou 1,5–3,7 dB com 4 guitarras |
 | Ler áudio sem reamostrar para 48 kHz | Demucs escreve 44,1 kHz; tudo desloca +1,5 semitom |
 | Mudar amp, compressor e EQ no mesmo passo num ajuste de ouvido | 17/09: estado "próximo" virou "completamente diferente" sem dar para saber o que piorou |
+| Rodar o laço de `eq_match` em lote, várias músicas de uma vez | destruiu a biblioteca inteira: 38 presets de uma vez, sem ninguém ouvir |
+| Perseguir o topo morto de um stem separado com corte de presença/agudo | o número sobe e o som morre: −21 a −24 dB em 5k/10k e `output_db` em +12 |
+
+### O laço de `eq_match` em lote matou 38 presets (2026)
+
+`rebuild_preset.py` rodado em lote contra stems separados zerou a biblioteca. Todo *reference* era
+um stem com a oitava de cima morta (acima de ~5 kHz). Para "casar" esse topo morto, o `eq_match`
+empilhou cortes enormes na presença e no agudo do render — o desvio medido melhorava enquanto o
+timbre morria. É exatamente a armadilha da referência degradada, e o laço em lote passou por cima
+dela. A contaminação ainda sincronizou para o `project.yaml`; só os áudios de referência
+sobreviveram.
+
+- Timbrar é **uma música por vez**, e quem aprova antes de salvar é o **ouvido do João** — não o número.
+- Stem degradado (topo morto, *self_floor* baixo): **não** rodar o escurecimento agressivo do
+  `eq_match`. Montar o equipamento pesquisado (o amp é o timbre, mais a cadeia de drive) com EQ
+  neutra ou musical (plana ± um ar leve) e entregar para ele ouvir.
+- Nunca inventar equipamento ou ajuste: equipamento vem da pesquisa citada; EQ que não dá para
+  validar honestamente não é entregue.
+- Proteger os áudios de referência acima de tudo — foi o único material que sobrou.

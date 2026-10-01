@@ -57,10 +57,12 @@ def measure(render: Renderer, assignments: list[dict], workdir: Path) -> dict:
                 return saved["result"]
         except (ValueError, KeyError):
             pass
-    per_note = []
+    per_note, renders = [], {}
     for i, a in enumerate(assignments):
-        x = render_note(render, a["di"], workdir, f"{i:02d}-{entry_tag(a['note'])}")
-        per_note.append(note_deviation(a["note"], x))
+        # one DI through one chain sounds once: on a pedal each render is a real re-amp
+        if str(a["di"]) not in renders:
+            renders[str(a["di"])] = render_note(render, a["di"], workdir, f"{i:02d}-{entry_tag(a['note'])}")
+        per_note.append(note_deviation(a["note"], renders[str(a["di"])]))
     result = {"deviation": mean_deviation(per_note),
               "per_note": [None if p is None else p["rms_db"] for p in per_note],
               "points": [[] if p is None else [list(pt) for pt in p["points"]] for p in per_note]}

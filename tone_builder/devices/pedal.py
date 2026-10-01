@@ -18,6 +18,7 @@ import json
 import re
 import shlex
 import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -41,19 +42,27 @@ def resolve_exe(exe: str) -> list[str]:
 
 class Runner:
     """A device call that hangs is killed and retried: `mvave enable EQ on` once hung
-    1h40 in rtmidi close_port (MK-300, 18/09/2026) with the command already sent."""
+    1h40 in rtmidi close_port (MK-300, 18/09/2026) with the command already sent. One that crashes is retried
+    too: one `mvave param` in hundreds died with a traceback and ended a build (20/09/2026). The pause
+    doubles: the Ampero answered 4-byte patch dumps for longer than three 2 s retries (28/09/2026)."""
 
-    def __init__(self, exe: str, timeout_s: float = 120, attempts: int = 3):
-        self.exe, self.timeout_s, self.attempts = exe, timeout_s, attempts
+    def __init__(self, exe: str, timeout_s: float = 120, attempts: int = 5, pause_s: float = 2.0):
+        self.exe, self.timeout_s, self.attempts, self.pause_s = exe, timeout_s, attempts, pause_s
 
     def __call__(self, args: list[str]) -> tuple[int, str]:
-        for _ in range(self.attempts):
+        failed = None
+        for n in range(self.attempts):
             try:
                 p = subprocess.run([*resolve_exe(self.exe), *args], capture_output=True, text=True,
                                    timeout=self.timeout_s)
             except subprocess.TimeoutExpired:
                 continue
-            return p.returncode, (p.stdout or "") + (p.stderr or "")
+            if p.returncode == 0:
+                return 0, (p.stdout or "") + (p.stderr or "")
+            failed = (p.returncode, (p.stdout or "") + (p.stderr or ""))
+            time.sleep(self.pause_s * 2 ** n)
+        if failed:
+            return failed
         return 124, f"{self.exe} {' '.join(args)}: timed out {self.attempts}x after {self.timeout_s} s"
 
 
@@ -70,9 +79,17 @@ class PedalDevice:
     exe = ""
     categories: dict[str, tuple[str, ...]] = {}
 
-    def __init__(self, workdir: Path, runner=None):
+    def __init__(self, workdir: Path, runner=None, keep_blocks: tuple[str, ...] = ()):
+        """keep_blocks: blocks chosen by hand on the pedal. tone-builder never writes them —
+        the MK-300's NAM (V73) lives outside the preset image, so `load` or `model AMP ...`
+        drops it. Their classes are reported as fixed on the device instead of measured."""
         self.workdir = Path(workdir)
         self.run = runner or Runner(self.exe)
+        self.keep_blocks = tuple(b.upper() for b in keep_blocks)
+        # a class whose block is kept is not measured at all: on the Ampero the amp spans
+        # AMP and PRE AMP, and keeping either means the amp was chosen by hand
+        self.fixed_classes = {k for k, cats in self.categories.items()
+                              if any(c in self.keep_blocks for c in cats)}
 
     # --- to be provided by each pedal -------------------------------------------------
     def find(self, category: str, unit: str) -> list[str]:
@@ -92,13 +109,17 @@ class PedalDevice:
     def _ok(self, args: list[str]) -> str:
         code, out = self.run(args)
         if code != 0:
-            raise RenderError(f"{self.exe} {' '.join(args)} failed ({code}): {out.strip()[:300]}")
+            raise RenderError(f"{self.exe} {' '.join(args)} failed ({code}): {out.strip()[-300:]}")
         return out
 
     def settings(self, category: str, model: str) -> list[dict]:
         ks = self.knobs(category, model)
         out = [{}]
         gain = next((k for k in ks if k["name"].strip().lower() in GAIN_NAMES), None)
+        names = {k["name"].strip().lower() for k in ks}
+        if gain is None and names & {"output", "master"}:
+            # a non-master amp (Plexi): its Volume is the gain, the Output/Master is the level after it
+            gain = next((k for k in ks if k["name"].strip().lower().startswith("volume")), None)
         if gain is not None and gain["max"] > gain["min"]:
             for f in GAIN_SWEEP:
                 out.append({gain["name"]: round(gain["min"] + f * (gain["max"] - gain["min"]))})
@@ -109,18 +130,25 @@ class PedalDevice:
         options: dict[str, list] = {}
         unresolved = []
         for b in research.get("blocks") or []:
-            if b.get("absent_from_catalog"):
+            if b.get("absent_from_catalog") or b["class"] in self.fixed_classes:
                 continue
             klass = b["class"]
             found = []
-            for cat in self.categories.get(klass, ()):
-                found += [(cat, m) for m in self.find(cat, b["unit"])]
+            if b.get(self.exe):
+                # models fixed for this device in the research ("NAM:NAM Slot 4", "CAB:User IR 3"):
+                # a capture or IR of the researched unit loaded on the pedal; nothing is guessed by name
+                found = [tuple(x.split(":", 1)) for x in b[self.exe]]
+            else:
+                for cat in self.categories.get(klass, ()):
+                    found += [(cat, m) for m in self.find(cat, b["unit"])]
             if not found:
                 unresolved.append(f"{klass}: {b['unit']}")
                 continue
             for cat, model in found:
                 for s in self.settings(cat, model):
                     label = ",".join(f"{k}={v}" for k, v in s.items())
+                    if any(o.name == f"{cat}:{model}[{label}]" for o in options.get(klass, [])):
+                        continue        # two researched units on the same model: measured once
                     options.setdefault(klass, []).append(Option(
                         name=f"{cat}:{model}[{label}]", klass=klass, unit=b["unit"],
                         blocks=[{"category": cat, "model": model, "knobs": s}]))
@@ -155,8 +183,8 @@ class AmperoDevice(PedalDevice):
     EQ_MODEL = "Graphic EQ"
     TIE = 0.05
 
-    def __init__(self, workdir: Path, work_patch: str, runner=None):
-        super().__init__(workdir, runner)
+    def __init__(self, workdir: Path, work_patch: str, runner=None, keep_blocks: tuple[str, ...] = ()):
+        super().__init__(workdir, runner, keep_blocks)
         self.work_patch = work_patch
 
     def find(self, category: str, unit: str) -> list[str]:
@@ -261,6 +289,8 @@ class MvaveDevice(PedalDevice):
         used.setdefault("VOL", self.with_level([], self.output_levels[0])[0])
         cmds = []
         for blk in self.BLOCKS:
+            if blk in self.keep_blocks:      # chosen by hand on the pedal: left alone
+                continue
             b = used.get(blk)
             if b is None:
                 cmds.append(["enable", blk, "off"])

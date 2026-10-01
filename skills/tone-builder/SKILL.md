@@ -21,25 +21,29 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 | record audio (full mix) | `$TA tones find "<song>"` — in the library → pass only `--artist --song`, no `--disc` | handed over → pass its path as `--disc`, where it is; `build` has tone-analyzer separate, analyze and store it (~3 min). m4a/AAC → `ffmpeg -ar 48000` to WAV first. None → ask; without it nothing is measured: stop |
 | separated guitar track | the same library entry (`<role>/reference.*`) | never ask and never separate by hand: `build` does it through tone-analyzer. The user handed one over → pass it as `--lead` together with `--disc`: tone-analyzer stores it as that role's reference instead of separating |
 | guitar + selector position | `$TB library list` — one recorded → use it | ask which; offer `library record` |
+| the song's chords (cifra) | `~/.tone-builder/<song>/cifra.yaml` | open the song's tab (Cifra Club etc., in the user's Chrome) and write `cifra.yaml` (format in `tone_builder/cifra.py`: chords + tab shape + `tuning_semitones`); no tab found → ask the user for a few chords. On a pedal, never build without it |
 | real chords for the library | — | `$TB library record-chord <guitar> <position> <c6-40_c5-47_c4-52> --device … --channel …` (string-midi per note; 3 strums; `library check` confirms the set) |
 | devices | the request | ask |
-| preset name / slot | — never ask | `DIG - <Artist> - <Song> (<part>)`; if that name already exists (`~/.openrig/presets/`, `ampero2 patches`, `mvave presets`) append ` tb2`, ` tb3`…; next empty slot; never overwrite |
+| preset name / slot | — never ask | `DIG - <Artist> - <Song> (<part>)` (Ampero: 16 chars, MK-300: 20 — shorten, e.g. `DIG GD Paradise`); if that name already exists (`~/.openrig/presets/`, `ampero2 patches`, `mvave presets`) append ` tb2`, ` tb3`…; next empty slot; never overwrite |
 
 ## Flow
 
-1. **Research (step 0)** → `research.yaml` (format: `exemplos/gravity-john-mayer/research.yaml`).
-   Open every page; quote it. A search summary is not a source. Record rig ≠ tour rig.
-   Every class `single_drive stacked_drives boost compressor amp cab eq time_fx` is either a block
-   or a `not_found` entry with what was searched — or the report comes out `parcial`.
-   No page names the rig → ask the user to ask the player; the answer is a source:
-   `statement: {who, date, channel, quote}` on the block, instead of `sources`.
-   The source names a class but no unit ("compressor") → `unit: any`: every model of that class
-   competes (never for `time_fx`). A delay/reverb the source names only by class → the block's `unit` is the device unit the
-   user approved by ear, its amounts go in `params: {...}`, and a comment says who set them and
-   when; the number cannot see time effects. A brand alone ("Fender") is a unit: it opens every
-   capture of that brand.
-   A named unit with hundreds of captures and a tone the user calls clean or dirty →
-   `$TB linearity --device openrig --unit "<unit>" …` ranks its captures by measured cleanliness.
+1. **Research (step 0)** → the **`tone-builder:gear-researcher`** agent writes
+   `research.yaml` (format: `exemplos/gravity-john-mayer/research.yaml`), then the
+   **`tone-builder:research-auditor`** agent verifies it. Dispatch the researcher with `song`,
+   `artist`, `part` and the `research_path`; dispatch the auditor with that path; on `VERDICT: FAIL`
+   send its report back to the researcher as `audit_report` and audit again. Never build past a FAIL,
+   and never research the rig yourself in this conversation — the pages belong in their context, the
+   verdict in yours. Relay the auditor's uncovered classes and its `NOTE:` lines to the user.
+   Two parts (rhythm and solo) → two researchers at once, one file each.
+   What only you can supply, in the dispatch prompt:
+   - No page names the rig → ask the user to ask the player; the answer ships as
+     `statement: {who, date, channel, quote}` instead of `sources`.
+   - A delay or reverb named only by class → the `unit` is the device unit the user approved by ear
+     and its amounts go in `params: {...}`; pass them as `ear_params`. The number cannot see time
+     effects, so without them that class stays `not_found`.
+   - A named unit with hundreds of captures and a tone the user calls clean or dirty →
+     `$TB linearity --device openrig --unit "<unit>" …` ranks its captures by measured cleanliness.
 2. `$TB build --device openrig|ampero2|mvave --artist … --song … [--role guitars] [--disc … [--lead …]] --research … --guitar … --position …
    --name … --out ~/.tone-builder/<song>/<device>-v<N> [--plugins-root …] [--work-patch …]` — minutes to hours: run it
    in the background, one device at a time.
@@ -49,12 +53,30 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
    - Chords are measured automatically (2+ notes at one attack; DI = every playable voicing of the
      library, plus recorded chords, chosen by measurement). `--no-chords` = single notes only;
      `--chord-detector salience|basic-pitch` (default salience).
+   - Pedal (`ampero2`, `mvave`): pass `--cifra ~/.tone-builder/<song>/cifra.yaml` — the target is the
+     3 strongest attacks of each tab chord, played with the tab's shape (`--per-chord N`). Without it
+     every detected attack × every voicing is a real re-amp: 975 of them on one song.
    - exit 3 lists units with no catalog model: check the catalog; if truly absent set
      `absent_from_catalog: true` on that block (it becomes the class reason). Never type a model id.
+   - The pedal lacks the researched unit, or `resolve` matched it only by brand ("Marshall 4x12" for a
+     4x12 V30) → upload the unit's NAM/IR from the OpenRig catalog (`ampero2 nam-upload` / `ir-upload`,
+     free slot) and fix the block's candidates in a per-device research copy:
+     `ampero2: ["NAM:NAM Slot 4", "AMP:Marshell SLP+"]`, `ampero2: ["IR:User IR 3"]` (user IRs are
+     category `IR`, not `CAB`). Those are the only candidates; the comment says what is loaded where.
+     MK-300 NAM is chosen on the pedal (a MIDI `load` drops it) → `--keep-block AMP`.
 3. Read `report.md`. Relay **status as written** (`pronto`/`parcial`), the chain, the test-note
    deviation, `unsourced_best`, the margin and every class reason.
 4. Write to the device as a **new** preset/slot, read it back from the device/disk, then
    `$TB verify --device … --build-dir … --saved <preset yaml | patch | slot>` — must print `"match": true`.
+5. **Riff check before delivering**: build the cifra riff from the library notes at the song's tempo,
+   re-amp it through the SAVED preset, and compare octave-band levels (63 Hz–8 kHz, both at the same
+   RMS) with the same stretch of the separated guitar. Any band 250 Hz–4 kHz more than 3 dB off →
+   not ready, whatever `report.md` says: relay the table and rebuild (other captures/gains, EQ).
+   A NAM with several gain captures → upload and compete all of them, not only the OpenRig winner.
+6. Candidates to compare by ear: Ampero → one scene per candidate in the same patch (footswitches
+   `1b…1f`); MK-300 has no scenes → one preset each. Level-match by measurement (rms of a re-amped
+   chord, target within ±0.5 dB) with the amp's `Output` knob (NAM: `Output` in dB), never by ear.
+   Scene 1 stays the verified build; run `verify` again after saving the scenes.
 
 ## Devices
 
@@ -62,7 +84,7 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 |---|---|---|
 | OpenRig | MCP: new preset, `save`, then reread `~/.openrig/presets/<name>.yaml`; `--saved` = that file | — |
 | MK-300 | `preset.yaml` `commands` via `mvave`, then `mvave save N NAME` | no MIDI port → report "not connected", do the other devices |
-| Ampero II | `--work-patch` = an empty slot; `commands` via `ampero2` (they end with `input-source input`), `ampero2 save DEST NAME` | no MIDI port → report "not connected", do the others |
+| Ampero II | `--work-patch` = an empty slot; `commands` via `ampero2` (they end with `input-source input`), `ampero2 save DEST NAME` | no MIDI port → report "not connected", do the others. The Ampero II editor app open → it fights over MIDI (4-byte dumps, "no reply"): ask the user to close it |
 
 ## Never
 
@@ -73,3 +95,5 @@ Who stores what: the song's AUDIO and its analysis are tone-analyzer's (`~/.tone
 | add a block no source names, or drop a cited one | the research decides blocks; the number decides settings |
 | stop to ask "sigo?" between steps or devices | the request already covers it |
 | overwrite a named preset or slot | always a new one |
+| edit the Ampero (`param`, `model`, `powers`, `input-source`, `reamp`) with scene 2–5 active | firmware v1.7.0 halts ("SceneNum == SCENE_1") and must be restarted; to measure scene N, stay on scene 1 and turn scene N's blocks on in it (`powers 1 …`), set every scene's `powers` last |
+| leave a pedal on `usb34` / RESAMPLE | `doctor` after every run; the user plays it next |
