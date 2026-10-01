@@ -6,3 +6,4 @@ __pycache__/
 bruto/
 .solvers/
 biblioteca/**/_takes/
+.playwright-mcp/

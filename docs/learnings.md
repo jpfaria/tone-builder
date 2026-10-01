@@ -32,6 +32,18 @@ Method rules live in [metodo.md](metodo.md); effect detection in [pesquisa/2026-
 - **Gotcha / invariant:** OpenRig amp blocks come with a noise gate on at −30.5 dB, which cuts light picking (user had to attack hard); `replace_block_model` resets the block's EQ; reverting a channel via parameter option landed on top boost instead of normal. Re-read `~/.openrig/project.yaml` after `save_project` to confirm what was stored.
 - **Applies to:** chain edits through the OpenRig MCP.
 
+## 2026-09-18 — One separated guitar track can hold two guitars; a chord-only part gives no notes
+
+- **Gotcha / invariant:** demucs puts every guitar in one stem, so rhythm and lead share the same `reference`. On *Even Flow* the build found only two isolated notes in the whole song, one inside the lead solo, and judged the rhythm chain against the lead guitar. The rhythm part is all chords and ghost notes: 0 isolated notes in 0:00–0:30 and none before the solo.
+- **Why it matters:** a `parcial` result with a huge deviation may mean "measured against the wrong guitar", not "bad chain". Check where the measured notes fall in time before trusting the number.
+- **Applies to:** songs with two guitarists → restrict the target with `--from/--to` to a section where only the wanted part plays; chord parts need the chord target.
+
+## 2026-09-18 — Chord false notes on the real library are open strings ringing in the samples
+
+- **Gotcha / invariant:** measured after `validate --chords` failed: open strings ring sympathetically within 30 dB of the played fundamental in 19 of 96 library notes, and `salience_set` returns an extra note on 29 of 96 notes played alone — the same open pitches it reported as false notes in chords. A raw prominence gate alone is misleading here (bass bands are near-silent in DI takes, so noise reads as 26–42 dB prominence); an amplitude floor relative to the played note is needed.
+- **Why it matters:** the detector is not inventing those notes; the known truth assumes a sample contains only the note played.
+- **Applies to:** chord known truth built from single-note samples — either count a note already present in a component sample as true, or record samples with open strings muted.
+
 ## 2026-09-18 — Who stores what: analyses are tone-analyzer's, not tone-builder's and not the agent's
 
 - **Gotcha / invariant:** the analysis of ONE audio (fingerprint, harmonics, spectrograms, PDF) is stored by **tone-analyzer**, in its song library: `tone-analyzer tones add --artist … --song … --role … --analysis OUT --reference-kind … --reference … --track …` → `~/.tone-analyzer/tones/<artist>-<song>/`. Look there first with `tones find` so nobody analyzes a song twice. The song's AUDIO is tone-analyzer's too: the full track (`track.<ext>`) and the separated guitar (`<role>/reference.<ext>`) live in that same library entry — there is no `refs/` under `~/.tone-builder/` (jpfaria, 18/09: "refs é do tone analyzer"). `~/.tone-builder/<song>/` keeps only what compares or decides: research, builds, device results, reports.
@@ -105,3 +117,29 @@ por corda. As 10 tomadas brutas guardadas, repassadas em blocos de 0,5 s, dão 1
   que a corda não tem denuncia: duas notas fora da faixa da corda (até 5 semitons abaixo ou acima) → a tomada
   inteira é desfeita, o áudio vai para `_takes/c<n>-wrong-string.wav` e a mesma corda é pedida de novo.
   22 tomadas reais sem alarme falso; as três tomadas erradas foram pegas.
+- Entrada muda: o gravador avisa em 5 s quando o canal está em silêncio (pico ≤ −90 dBFS) e encerra, em vez
+  de esperar corda por corda. Antes de culpar o gravador, medir TODAS as entradas da interface: a guitarra
+  aqui alterna entre a In 1 e os canais 16/17 (DI pelo ADA), e pela DI chegou a −1 dBFS, quase clipando.
+
+## 2026-09-19 — Piso de 4 dB: duas tomadas da mesma nota já diferem tanto
+
+- **Gotcha / invariant:** a variação de palhetada entre duas tomadas da mesma nota, mesma guitarra e mesma
+  posição, dá 4,3 dB de erro na forma do espectro (3,1–4,0 nos harmônicos 1–6). Nenhuma comparação de timbre
+  feita com uma tomada por nota distingue menos que isso.
+- **Why it matters:** diferença de desvio menor que ~4 dB entre dois candidatos não é diferença. No *Alive*
+  a Paul's na ponte (5,1–5,7 dB) e a Silver Sky no braço (4,7–5,8 dB) ficaram empatadas por esse piso, e quem
+  decidiu foi a pesquisa, não o número. Pela mesma régua, inferir uma posição de captador a partir das outras
+  duas erra 8,4 dB e não serve: posição que se quer usar, grava-se.
+- **Applies to:** toda leitura de desvio no relatório e toda escolha entre candidatos. Medição e método em
+  [pesquisa/2026-09-19-inferir-posicao-de-captador.md](pesquisa/2026-09-19-inferir-posicao-de-captador.md).
+
+## 2026-09-19 — A pesquisa é por aparelho: nome fora do catálogo mata o build no começo
+
+- **Gotcha / invariant:** o mesmo `research.yaml` não serve para dois aparelhos. Quatro builds de Pearl Jam
+  morreram na largada porque a pesquisa dizia `TS-9` (o catálogo tem `TS9`) e citava amps que a MK-300 não
+  tem. Cada aparelho ganha a sua cópia (`research-mvave.yaml`, `research-solo-mvave.yaml`), com o nome do
+  catálogo dele e o que não existe marcado como ausente.
+- **Why it matters:** o build gasta horas e a falha aparece nos primeiros segundos — conferir os nomes nos
+  dois catálogos antes de enfileirar. Uma unidade pesquisada que não existe no catálogo também deixava o
+  relatório em `parcial` sem motivo nas classes `compressor` e `time_fx` (corrigido em 19/09).
+- **Applies to:** todo build que reaproveita pesquisa feita para outro aparelho.
