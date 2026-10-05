@@ -12,6 +12,8 @@
     }
   ],
   "allowCrossMarketplaceDependenciesOn": [
+    "tone-analyzer",
+    "openrig",
     "mvave",
     "hotone-ampero-2"
   ]
